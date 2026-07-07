@@ -4,43 +4,47 @@
 
 // legend: . none | # outline | B base | G patch | S spot | P inner ear | R blush
 const SPRITE = [
-  "...........#...........#..........",
-  "...........##.........##..........",
-  "..........#P#.#######.#P#.........",
-  "..........#PP#BBBBBGG#PP#.........",
-  ".........#PPPBBBBBGGGGPPP#........",
-  ".........#BBBBBBBBGGGGGGG#........",
-  "........##BBBBBBBGGGGGGGG##.......",
-  "..........#BBBBBBGGGGGGG#.........",
-  "..........#BBBBBBBGGGGGG#.........",
+  "..........##...........##.........",
+  "..........##...........##.........",
+  ".........#P#...........#P#........",
+  ".........#PP#.#######.#PP#........",
+  ".........#PPB#BBBBGGG#GPP#........",
+  "........#BBBBBBBBBGGGGGGGG#.......",
+  "........#BBBBBBBBGGGGGGGGG#.......",
+  ".......###BBBBBBBBGGGGGGG###......",
   "..........#BBBBBBBGGGGGG#.........",
   "..........#BBBBBBBBGGGGG#.........",
+  "..........#BBBBBBBBBGGGG#.........",
   "..........#BBBBBBBBBBBBB#.........",
   "...........#RBBBBBBBBBR#..........",
-  "...........#RBBBBBBBBBR#..........",
   "...........#BBBBBBBBBBB#..........",
-  "..........#GBBBBBBBBBBBB#.........",
-  ".........#GGGBBBBBBBBBBBB#........",
-  ".........#GGGBBBBBBBBBBBB#........",
-  ".....####GGGG#BBBBBB#BBBBB####....",
-  ".....#GGGGGGG#BBBBBB#BBBBBSSB#....",
-  "....#BGGGGGGB#BB##BB#BBBBSSSSB#...",
-  "....#BBBBBBBB#BB##BB#BBBBSSSSB#...",
-  "....#BBBBBBBB#BB##BB#BBBBBSSBB#...",
-  "....#BBBBBBBB#BB##BB#BBBBBBBBB#...",
-  ".....#BBBB##B#BB##BB#BB##BBBB#....",
-  "......####..###########..####.....",
+  "............#BBBBBBBBB#...........",
+  ".............#GGBBBBB#............",
+  "............#GGGBBBBBB#...........",
+  "............#GGGGBBBBB#...........",
+  "............#GGGBBBBBB#...........",
+  "............#GGGBBBBBB#...........",
+  "...........##BBB#BBB#BB#..........",
+  "...........##BBB#BBB#BB#..........",
+  "..........#B#BBB#BBB#BBB#.........",
+  "..........#B#BBB#BBB#SSS#.........",
+  "..........#B#BBB#BBB#SSS#.........",
+  ".........#BB#BBB#BBB#SSSS#........",
+  ".........#BB#BBB#BBB#SSSS#........",
+  "..........#B#BBB#BBB#BBB#.........",
+  "...........##BBB#BBBBB##..........",
+  ".............#########............",
 ];
-const COLS = 34, ROWS = 26;
+const COLS = 34, ROWS = 30;
 const PAD = 8;                       // rows of headroom above the cat
 
 // anatomy anchors, in cell units
-const EYE_L = [12.8, 7.6], EYE_R = [19.8, 7.6];
-const NOSE = [16.5, 10.8];
-const HEAD = { c0: 9, c1: 25, r0: 0, r1: 14 };
-const TAIL_ROOT = [28.2, 22.0];      // behind the right haunch
-const SHOULDER = [11.2, 18.0];       // left shoulder, for fish swipes
-const FISH_BASE_ROW = 17.5;          // fish hover height while swimming
+const EYE_L = [12.9, 7.8], EYE_R = [19.9, 7.8];
+const NOSE = [16.4, 11.0];
+const HEAD = { c0: 8, c1: 26, r0: 0, r1: 14 };
+const SHOULDER = [12.4, 20.0];       // left shoulder, for fish swipes
+const FISH_BASE_ROW = 21.0;          // fish hover height while swimming
+const SWIPE_MS = 620;                // full swipe: windup, strike, retract
 
 const SKINS = {
   patch:   { B: "#f6f1e5", G: "#8d8a86", S: "#f6f1e5", "#": "#4a4440", label: "patch" },
@@ -74,6 +78,7 @@ class PixelCat {
     this.gazeTarget = { x: 0, y: 0 };
     this.stretch = 0;                     // mochi (drag)
     this.tall = 0;                        // stretch-break growth
+    this.tailUp = 0;                      // 0 = wrapped on ground, 1 = raised
     this.dragging = false;
     this.petHeat = 0;
     this.keyTimes = [];
@@ -86,7 +91,7 @@ class PixelCat {
     // fish toy: {x,y (cells), vx,vy, dir, phase: swim|toss, spin, born}
     this.fish = null;
     this.fishCooldownUntil = 0;
-    this.swipeStart = 0;                  // swipe animation window
+    this.swipeStart = -9999;
     this.swipeHit = false;
 
     if (!this.demo) this._bindEvents();
@@ -171,6 +176,9 @@ class PixelCat {
     // eased gaze — this is what makes the eyes feel alive
     this.gaze.x += (this.gazeTarget.x - this.gaze.x) * 0.14;
     this.gaze.y += (this.gazeTarget.y - this.gaze.y) * 0.14;
+    // tail rises when engaged, settles when calm
+    const engaged = this.fish || ["alert", "overheat", "stretch"].includes(this.state);
+    this.tailUp += ((engaged ? 1 : 0) - this.tailUp) * 0.07;
     if (this.bubble && now > this.bubble.until) this.bubble = null;
 
     this._draw(now);
@@ -192,7 +200,7 @@ class PixelCat {
     if (this.state === "sleep" && Math.random() < 0.02)
       this._spawn("zzz", 26 * this.px, (PAD - 1) * this.px);
     if (this.state === "overheat" && Math.random() < 0.4)
-      this._spawn("steam", (12 + Math.random() * 10) * this.px, (PAD - 0.5) * this.px);
+      this._spawn("steam", (11 + Math.random() * 11) * this.px, (PAD - 0.5) * this.px);
 
     // gaze: fish beats mouse
     if (this.fish) this._gazeAt(this.fish.x * this.px, (this.fish.y + PAD) * this.px);
@@ -214,29 +222,29 @@ class PixelCat {
   _fishTick(now) {
     const f = this.fish;
     if (f.phase === "swim") {
-      f.x += f.dir * 0.07;
-      f.y = FISH_BASE_ROW + Math.sin(now / 420) * 1.1;
-      if (f.x > 10.6) f.dir = -1;
+      f.x += f.dir * 0.06;
+      f.y = FISH_BASE_ROW + Math.sin(now / 420) * 1.0;
+      if (f.x > 9.8) f.dir = -1;
       if (f.x < 0.6 && f.dir === -1) f.dir = 1;
-      // fish drifts into paw range -> wind up a swipe
-      if (f.x > 8.2 && f.dir === 1 && now - this.swipeStart > 2200) {
+      // fish drifts into paw range -> begin the swipe (windup first)
+      if (f.x > 7.4 && f.dir === 1 && now - this.swipeStart > 2600) {
         this.swipeStart = now;
         this.swipeHit = false;
       }
-      // the moment of contact: launch the fish
+      // contact happens at the strike apex, mid-swipe
       const st = now - this.swipeStart;
-      if (!this.swipeHit && st > 180 && st < 260 && f.x > 6.5) {
+      if (!this.swipeHit && st > SWIPE_MS * 0.42 && st < SWIPE_MS * 0.56 && f.x > 5.8) {
         this.swipeHit = true;
         f.phase = "toss";
-        f.vx = -(0.22 + Math.random() * 0.12);
-        f.vy = -(0.5 + Math.random() * 0.18);
+        f.vx = -(0.2 + Math.random() * 0.1);
+        f.vy = -(0.48 + Math.random() * 0.16);
         f.spin = 0;
       }
     } else {                               // toss: gravity + tumble
       f.vy += 0.035;
       f.x += f.vx;
       f.y += f.vy;
-      f.spin += 0.32;
+      f.spin += 0.3;
       if (f.y >= FISH_BASE_ROW && f.vy > 0) {   // caught the air again
         f.phase = "swim";
         f.y = FISH_BASE_ROW;
@@ -275,7 +283,7 @@ class PixelCat {
         if (cyc(2.5) < 1.6) {
           this.state = "pet";
           if (Math.random() < 0.05)
-            this._spawn("heart", (13 + Math.random() * 8) * this.px, (PAD + 2) * this.px);
+            this._spawn("heart", (12 + Math.random() * 9) * this.px, (PAD + 2) * this.px);
         }
         break;
       case "knead":
@@ -284,7 +292,7 @@ class PixelCat {
       case "overheat":
         this.state = "overheat";
         if (Math.random() < 0.4)
-          this._spawn("steam", (12 + Math.random() * 10) * this.px, (PAD - 0.5) * this.px);
+          this._spawn("steam", (11 + Math.random() * 11) * this.px, (PAD - 0.5) * this.px);
         break;
       case "drag":
         this.stretch = 0.5 + Math.sin(t * 2.4) * 0.5;
@@ -342,16 +350,16 @@ class PixelCat {
     // breathing: a slow, subtle vertical swell
     const breathe = 1 + Math.sin(now / 1100) * 0.011;
     const shiver = this.state === "overheat" ? ((Math.floor(now / 60) % 2) ? 1 : -1) : 0;
-    const sy = breathe + this.stretch * 0.26 + this.tall * 0.33;
+    const sy = breathe + this.stretch * 0.24 + this.tall * 0.3;
     const bottom = (PAD + ROWS) * px;
     const yof = (r) => bottom - (ROWS - r) * px * sy;
     const xof = (c) => c * px + shiver + this.slideX;
     const ph = px * sy + 0.6;
 
-    this._drawTail(now, pal, xof, yof);      // behind the body
+    if (this.tailUp >= 0.5) this._drawTail(now, pal, xof, yof);   // raised: behind
 
     let knead = null;
-    if (this.state === "knead") knead = (Math.floor(now / 170) % 2) ? [14, 15] : [18, 19];
+    if (this.state === "knead") knead = (Math.floor(now / 170) % 2) ? [13, 15] : [17, 19];
 
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
@@ -364,7 +372,7 @@ class PixelCat {
         if ("BGS".includes(ch) && this.state === "overheat")
           color = this._blend(color, "#d86a5a", 0.4);
         let y = yof(r);
-        if (r >= ROWS - 6 && knead && knead.includes(c)) y -= px * 0.8;
+        if (r >= 20 && knead && c >= knead[0] && c <= knead[1]) y -= px * 0.8;
         cx.fillStyle = color;
         cx.fillRect(xof(c), y, px, ph);
       }
@@ -372,6 +380,7 @@ class PixelCat {
 
     if (pal.collar) this._drawCollar(pal, xof, yof);
     this._drawFace(now, pal, xof, yof);
+    if (this.tailUp < 0.5) this._drawTail(now, pal, xof, yof);    // wrapped: in front
     if (this.fish) this._drawFish(now);
     this._drawSwipe(now, pal, xof, yof);
     this._drawParticles();
@@ -379,17 +388,25 @@ class PixelCat {
   }
 
   _drawTail(now, pal, xof, yof) {
-    // a segmented tail that sweeps out and curls up, always swaying;
-    // slow and low when asleep, lifted when alert
+    // two natural poses, blended: wrapped along the ground when calm,
+    // raised and flicking when engaged. The wave travels toward the tip.
     const { cx, px } = this;
+    const m = this.tailUp;
     const asleep = this.state === "sleep";
-    const sway = Math.sin(now / (asleep ? 1800 : 750)) * (asleep ? 0.1 : 0.28);
-    const lift = this.state === "alert" ? 0.35 : 0;
-    let x = xof(TAIL_ROOT[0]), y = yof(TAIL_ROOT[1]);
-    let ang = 0.18 + sway * 0.5 + lift;
-    const segs = 9, w = px * 1.7;
+    const excited = !!this.fish;
+    const speed = asleep ? 2600 : excited ? 260 : 900;
+    const amp = asleep ? 0.05 : excited ? 0.16 : 0.08;
+
+    // pose parameters, lerped by m
+    const rootC = 25.4 - m * 1.6, rootR = 27.9 - m * 3.6;
+    let ang = (-3.05) * (1 - m) + 0.5 * m;
+    const dAng = (-0.04) * (1 - m) + 0.15 * m;
+
+    let x = xof(rootC), y = yof(rootR);
+    const w = px * 1.6, segs = 10;
     for (let i = 0; i < segs; i++) {
-      ang += 0.16 + sway * 0.14 + lift * 0.04;        // curl
+      const wave = Math.sin(now / speed - i * 0.55) * amp * (i / segs + 0.3);
+      ang += dAng + wave;
       x += Math.cos(ang) * px * 1.05;
       y -= Math.sin(ang) * px * 1.05;
       cx.fillStyle = pal["#"];
@@ -402,11 +419,11 @@ class PixelCat {
   _drawCollar(pal, xof, yof) {
     const { cx, px } = this;
     cx.fillStyle = "#c8433e";
-    cx.fillRect(xof(11.6), yof(14.2), px * 10.8, px * 1.1);
+    cx.fillRect(xof(12.6), yof(14.8), px * 9.0, px * 1.1);
     cx.fillStyle = "#e8b93c";
-    cx.fillRect(xof(16.4), yof(15.1), px * 1.6, px * 1.6);
+    cx.fillRect(xof(16.3), yof(15.7), px * 1.6, px * 1.6);
     cx.fillStyle = pal["#"];
-    cx.fillRect(xof(16.9), yof(15.7), px * 0.6, px * 0.6);
+    cx.fillRect(xof(16.8), yof(16.3), px * 0.6, px * 0.6);
   }
 
   _drawFace(now, pal, xof, yof) {
@@ -439,16 +456,16 @@ class PixelCat {
     cx.fillRect(xof(NOSE[0]), yof(NOSE[1]), px * 1.2, px * 0.8);
     cx.fillStyle = dark;
     if (this.state === "meow" || this.state === "overheat") {
-      cx.fillRect(xof(16.3), yof(12.1), px * 1.6, px * 1.2);
+      cx.fillRect(xof(16.2), yof(12.2), px * 1.6, px * 1.2);
     } else {
-      cx.fillRect(xof(16.0), yof(12.2), px * 2.2, px * 0.4);
+      cx.fillRect(xof(16.0), yof(12.4), px * 2.2, px * 0.4);
     }
     // whiskers
     cx.fillStyle = dark;
-    cx.fillRect(xof(25.2), yof(9.6), px * 2.6, px * 0.35);
-    cx.fillRect(xof(24.9), yof(11.4), px * 2.6, px * 0.35);
-    cx.fillRect(xof(6.2), yof(9.6), px * 2.6, px * 0.35);
-    cx.fillRect(xof(6.5), yof(11.4), px * 2.6, px * 0.35);
+    cx.fillRect(xof(25.4), yof(9.8), px * 2.6, px * 0.35);
+    cx.fillRect(xof(25.1), yof(11.6), px * 2.6, px * 0.35);
+    cx.fillRect(xof(6.0), yof(9.8), px * 2.6, px * 0.35);
+    cx.fillRect(xof(6.3), yof(11.6), px * 2.6, px * 0.35);
   }
 
   _drawFish(now) {
@@ -472,23 +489,39 @@ class PixelCat {
   }
 
   _drawSwipe(now, pal, xof, yof) {
-    // front-left leg reaches toward the fish, then returns
+    // realistic three-phase paw swipe: wind up, strike fast, retract slow.
+    // the leg bends at an elbow that straightens as the paw extends.
     const st = now - this.swipeStart;
-    if (!this.fish || st < 0 || st > 480) return;
+    if (!this.fish || st < 0 || st > SWIPE_MS) return;
     const { cx, px } = this;
-    const t = Math.sin((st / 480) * Math.PI);         // 0->1->0, eased
+    const t = st / SWIPE_MS;
+    let reach;
+    if (t < 0.22) reach = -1.1 * (t / 0.22);                       // wind up (pull back)
+    else if (t < 0.5) {
+      const k = (t - 0.22) / 0.28;
+      reach = -1.1 + (7.2 + 1.1) * (1 - (1 - k) * (1 - k));        // strike, ease-out
+    } else {
+      const k = (t - 0.5) / 0.5;
+      reach = 7.2 * (1 - k * k * (3 - 2 * k));                     // retract, smooth
+    }
     const sxp = xof(SHOULDER[0]), syp = yof(SHOULDER[1]);
     const fx = this.fish.x * px, fy = (this.fish.y + PAD) * px;
     const ang = Math.atan2(fy - syp, fx - sxp);
-    const len = t * px * 6.5;
-    const ex = sxp + Math.cos(ang) * len, ey = syp + Math.sin(ang) * len;
-    cx.strokeStyle = pal["#"];
-    cx.lineWidth = px * 2.1;
-    cx.beginPath(); cx.moveTo(sxp, syp); cx.lineTo(ex, ey); cx.stroke();
-    cx.strokeStyle = pal.B;
-    cx.lineWidth = px * 1.5;
-    cx.beginPath(); cx.moveTo(sxp, syp); cx.lineTo(ex, ey); cx.stroke();
-    cx.fillStyle = pal.B;                              // paw
+    const ex = sxp + Math.cos(ang) * reach * px;
+    const ey = syp + Math.sin(ang) * reach * px;
+    // elbow bows outward when the leg is bent, straightens at full reach
+    const bend = Math.max(0, 1 - Math.abs(reach) / 7.2) * 1.6 * px;
+    const mx = (sxp + ex) / 2 - Math.sin(ang) * bend;
+    const my = (syp + ey) / 2 + Math.cos(ang) * bend;
+    const seg = (x1, y1, x2, y2, wOut, wIn) => {
+      cx.strokeStyle = pal["#"]; cx.lineWidth = wOut;
+      cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke();
+      cx.strokeStyle = pal.B; cx.lineWidth = wIn;
+      cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke();
+    };
+    seg(sxp, syp, mx, my, px * 2.2, px * 1.6);   // upper leg
+    seg(mx, my, ex, ey, px * 2.0, px * 1.4);     // forearm
+    cx.fillStyle = pal.B;                         // paw
     cx.fillRect(ex - px, ey - px, px * 2, px * 2);
     cx.strokeStyle = pal["#"];
     cx.lineWidth = 1.5;

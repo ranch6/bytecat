@@ -32,46 +32,50 @@ from tkinter import simpledialog
 # ---------------------------------------------------------------- sprite ----
 # legend: . none | # outline | B base | G patch | S spot | P inner ear | R blush
 SPRITE = [
-    "...........#...........#..........",
-    "...........##.........##..........",
-    "..........#P#.#######.#P#.........",
-    "..........#PP#BBBBBGG#PP#.........",
-    ".........#PPPBBBBBGGGGPPP#........",
-    ".........#BBBBBBBBGGGGGGG#........",
-    "........##BBBBBBBGGGGGGGG##.......",
-    "..........#BBBBBBGGGGGGG#.........",
-    "..........#BBBBBBBGGGGGG#.........",
+    "..........##...........##.........",
+    "..........##...........##.........",
+    ".........#P#...........#P#........",
+    ".........#PP#.#######.#PP#........",
+    ".........#PPB#BBBBGGG#GPP#........",
+    "........#BBBBBBBBBGGGGGGGG#.......",
+    "........#BBBBBBBBGGGGGGGGG#.......",
+    ".......###BBBBBBBBGGGGGGG###......",
     "..........#BBBBBBBGGGGGG#.........",
     "..........#BBBBBBBBGGGGG#.........",
+    "..........#BBBBBBBBBGGGG#.........",
     "..........#BBBBBBBBBBBBB#.........",
     "...........#RBBBBBBBBBR#..........",
-    "...........#RBBBBBBBBBR#..........",
     "...........#BBBBBBBBBBB#..........",
-    "..........#GBBBBBBBBBBBB#.........",
-    ".........#GGGBBBBBBBBBBBB#........",
-    ".........#GGGBBBBBBBBBBBB#........",
-    ".....####GGGG#BBBBBB#BBBBB####....",
-    ".....#GGGGGGG#BBBBBB#BBBBBSSB#....",
-    "....#BGGGGGGB#BB##BB#BBBBSSSSB#...",
-    "....#BBBBBBBB#BB##BB#BBBBSSSSB#...",
-    "....#BBBBBBBB#BB##BB#BBBBBSSBB#...",
-    "....#BBBBBBBB#BB##BB#BBBBBBBBB#...",
-    ".....#BBBB##B#BB##BB#BB##BBBB#....",
-    "......####..###########..####.....",
+    "............#BBBBBBBBB#...........",
+    ".............#GGBBBBB#............",
+    "............#GGGBBBBBB#...........",
+    "............#GGGGBBBBB#...........",
+    "............#GGGBBBBBB#...........",
+    "............#GGGBBBBBB#...........",
+    "...........##BBB#BBB#BB#..........",
+    "...........##BBB#BBB#BB#..........",
+    "..........#B#BBB#BBB#BBB#.........",
+    "..........#B#BBB#BBB#SSS#.........",
+    "..........#B#BBB#BBB#SSS#.........",
+    ".........#BB#BBB#BBB#SSSS#........",
+    ".........#BB#BBB#BBB#SSSS#........",
+    "..........#B#BBB#BBB#BBB#.........",
+    "...........##BBB#BBBBB##..........",
+    ".............#########............",
 ]
-COLS, ROWS = 34, 26
+COLS, ROWS = 34, 30
 PX = 6
 OFF_X = 46
 TOP_PAD = 56
 W = 300
 H = TOP_PAD + ROWS * PX + 8
 
-EYE_L, EYE_R = (12.8, 7.6), (19.8, 7.6)      # (col, row)
-NOSE = (16.5, 10.8)
-HEAD = {"c0": 9, "c1": 25, "r0": 0, "r1": 14}
-TAIL_ROOT = (28.2, 22.0)
-SHOULDER = (11.2, 18.0)
-FISH_BASE_ROW = 17.5
+EYE_L, EYE_R = (12.9, 7.8), (19.9, 7.8)      # (col, row)
+NOSE = (16.4, 11.0)
+HEAD = {"c0": 8, "c1": 26, "r0": 0, "r1": 14}
+SHOULDER = (12.4, 20.0)
+FISH_BASE_ROW = 21.0
+SWIPE_S = 0.62               # full swipe: windup, strike, retract (seconds)
 CONFIG = Path.home() / ".bytecat.json"
 
 PINK, BLUSH = "#e9a0ab", "#f2b8bc"
@@ -126,6 +130,7 @@ class ByteCat:
         self.key_times = []
         self.gaze = [0.0, 0.0]
         self.gaze_target = [0.0, 0.0]
+        self.tail_up = 0.0           # 0 = wrapped on the ground, 1 = raised
 
         # fish toy: dict(x, y in cells, vx, vy, dir, phase, spin, born) or None
         self.fish = None
@@ -433,6 +438,9 @@ class ByteCat:
                                 max(-0.8, min(1.0, (py_ - cy) / 220))]
         self.gaze[0] += (self.gaze_target[0] - self.gaze[0]) * 0.35
         self.gaze[1] += (self.gaze_target[1] - self.gaze[1]) * 0.35
+        # tail rises when engaged, settles when calm
+        engaged = self.fish is not None or self.state in ("alert", "overheat", "stretch")
+        self.tail_up += ((1.0 if engaged else 0.0) - self.tail_up) * 0.25
 
         self._apply_peek(now)
         self._draw(now)
@@ -451,17 +459,17 @@ class ByteCat:
     def _fish_tick(self, now):
         f = self.fish
         if f["phase"] == "swim":
-            f["x"] += f["dir"] * 0.35            # cells per 80ms tick
-            f["y"] = FISH_BASE_ROW + math.sin(now * 2.4) * 1.1
-            if f["x"] > 10.6:
+            f["x"] += f["dir"] * 0.3             # cells per 80ms tick
+            f["y"] = FISH_BASE_ROW + math.sin(now * 2.4) * 1.0
+            if f["x"] > 9.8:
                 f["dir"] = -1
             if f["x"] < 0.6 and f["dir"] == -1:
                 f["dir"] = 1
-            if f["x"] > 8.2 and f["dir"] == 1 and now - self.swipe_start > 2.2:
+            if f["x"] > 7.4 and f["dir"] == 1 and now - self.swipe_start > 2.6:
                 self.swipe_start = now
                 self.swipe_hit = False
             st = now - self.swipe_start
-            if not self.swipe_hit and 0.14 < st < 0.3 and f["x"] > 6.5:
+            if not self.swipe_hit and SWIPE_S * 0.42 < st < SWIPE_S * 0.56 and f["x"] > 5.8:
                 self.swipe_hit = True
                 f["phase"] = "toss"
                 f["vx"] = -(1.1 + random.random() * 0.6)
@@ -509,11 +517,12 @@ class ByteCat:
         xof = lambda c: OFF_X + c * PX + shiver
         ph = PX * sy + 0.6
 
-        self._draw_tail(now, pal, xof, yof)
+        if self.tail_up >= 0.5:
+            self._draw_tail(now, pal, xof, yof)      # raised: behind the body
 
         knead = None
         if self.state == "knead":
-            knead = (14, 15) if int(now * 6) % 2 == 0 else (18, 19)
+            knead = (13, 15) if int(now * 6) % 2 == 0 else (17, 19)
 
         for r, row in enumerate(SPRITE):
             for c, ch in enumerate(row):
@@ -528,19 +537,21 @@ class ByteCat:
                 if ch in "BGS" and self.state == "overheat":
                     color = blend(color, "#d86a5a", 0.4)
                 y = yof(r)
-                if r >= ROWS - 6 and knead and c in knead:
+                if r >= 20 and knead and knead[0] <= c <= knead[1]:
                     y -= PX * 0.8
                 cv.create_rectangle(xof(c), y, xof(c) + PX, y + ph, fill=color, width=0)
 
         if pal.get("collar"):
-            cv.create_rectangle(xof(11.6), yof(14.2), xof(11.6) + PX * 10.8,
-                                yof(14.2) + PX * 1.1, fill="#c8433e", width=0)
-            cv.create_rectangle(xof(16.4), yof(15.1), xof(16.4) + PX * 1.6,
-                                yof(15.1) + PX * 1.6, fill="#e8b93c", width=0)
-            cv.create_rectangle(xof(16.9), yof(15.7), xof(16.9) + PX * 0.6,
-                                yof(15.7) + PX * 0.6, fill=pal["#"], width=0)
+            cv.create_rectangle(xof(12.6), yof(14.8), xof(12.6) + PX * 9.0,
+                                yof(14.8) + PX * 1.1, fill="#c8433e", width=0)
+            cv.create_rectangle(xof(16.3), yof(15.7), xof(16.3) + PX * 1.6,
+                                yof(15.7) + PX * 1.6, fill="#e8b93c", width=0)
+            cv.create_rectangle(xof(16.8), yof(16.3), xof(16.8) + PX * 0.6,
+                                yof(16.3) + PX * 0.6, fill=pal["#"], width=0)
 
         self._draw_face(now, pal, xof, yof)
+        if self.tail_up < 0.5:
+            self._draw_tail(now, pal, xof, yof)      # wrapped: in front, on the ground
         if self.fish is not None:
             self._draw_fish(now)
             self._draw_swipe(now, pal, xof, yof)
@@ -548,15 +559,24 @@ class ByteCat:
         self._draw_texts(now)
 
     def _draw_tail(self, now, pal, xof, yof):
+        """Two natural poses, blended: wrapped along the ground when calm,
+        raised and flicking when engaged. The wave travels toward the tip."""
         cv = self.canvas
+        m = self.tail_up
         asleep = self.state == "sleep"
-        sway = math.sin(now / (1.8 if asleep else 0.75)) * (0.1 if asleep else 0.28)
-        lift = 0.35 if self.state == "alert" else 0
-        x, y = xof(TAIL_ROOT[0]), yof(TAIL_ROOT[1])
-        ang = 0.18 + sway * 0.5 + lift
-        w = PX * 1.7
-        for _ in range(9):
-            ang += 0.16 + sway * 0.14 + lift * 0.04
+        excited = self.fish is not None
+        speed = 2.6 if asleep else 0.26 if excited else 0.9
+        amp = 0.05 if asleep else 0.16 if excited else 0.08
+
+        root_c, root_r = 25.4 - m * 1.6, 27.9 - m * 3.6
+        ang = (-3.05) * (1 - m) + 0.5 * m
+        d_ang = (-0.04) * (1 - m) + 0.15 * m
+
+        x, y = xof(root_c), yof(root_r)
+        w, segs = PX * 1.6, 10
+        for i in range(segs):
+            wave = math.sin(now / speed - i * 0.55) * amp * (i / segs + 0.3)
+            ang += d_ang + wave
             x += math.cos(ang) * PX * 1.05
             y -= math.sin(ang) * PX * 1.05
             cv.create_rectangle(x - w / 2 - 1, y - w / 2 - 1, x + w / 2 + 1, y + w / 2 + 1,
@@ -589,20 +609,20 @@ class ByteCat:
                                 fill=dark, width=0)
 
         # nose + flat blank mouth
-        cv.create_rectangle(xof(16.5), yof(10.8), xof(16.5) + PX * 1.2,
-                            yof(10.8) + PX * 0.8, fill="#c98a80", width=0)
+        cv.create_rectangle(xof(NOSE[0]), yof(NOSE[1]), xof(NOSE[0]) + PX * 1.2,
+                            yof(NOSE[1]) + PX * 0.8, fill="#c98a80", width=0)
         if self.state in ("meow", "overheat"):
-            cv.create_rectangle(xof(16.3), yof(12.1), xof(16.3) + PX * 1.6,
-                                yof(12.1) + PX * 1.2, fill=dark, width=0)
+            cv.create_rectangle(xof(16.2), yof(12.2), xof(16.2) + PX * 1.6,
+                                yof(12.2) + PX * 1.2, fill=dark, width=0)
         else:
-            cv.create_rectangle(xof(16.0), yof(12.2), xof(16.0) + PX * 2.2,
-                                yof(12.2) + PX * 0.4, fill=dark, width=0)
+            cv.create_rectangle(xof(16.0), yof(12.4), xof(16.0) + PX * 2.2,
+                                yof(12.4) + PX * 0.4, fill=dark, width=0)
         # whiskers
-        for wx_, wy_ in ((25.2, 9.6), (24.9, 11.4), (6.2, 9.6), (6.5, 11.4)):
+        for wx_, wy_ in ((25.4, 9.8), (25.1, 11.6), (6.0, 9.8), (6.3, 11.6)):
             cv.create_rectangle(xof(wx_), yof(wy_), xof(wx_) + PX * 2.6,
                                 yof(wy_) + PX * 0.35, fill=dark, width=0)
         if self.state == "meow":
-            cv.create_text(xof(28), yof(3), text="meow!", anchor="w",
+            cv.create_text(xof(27), yof(3), text="meow!", anchor="w",
                            font=("Courier", 13, "bold"), fill="#e5484d")
 
     def _draw_fish(self, now):
@@ -631,18 +651,34 @@ class ByteCat:
         rect(-0.2 * p, -1.0 * p, 0.5 * p, 2.0 * p, FISH_DARK)
 
     def _draw_swipe(self, now, pal, xof, yof):
+        """Three-phase paw swipe: wind up, strike fast, retract slow.
+        The leg bends at an elbow that straightens as the paw extends."""
         st = now - self.swipe_start
-        if st < 0 or st > 0.48:
+        if st < 0 or st > SWIPE_S:
             return
         cv = self.canvas
-        t = math.sin((st / 0.48) * math.pi)
+        t = st / SWIPE_S
+        if t < 0.22:
+            reach = -1.1 * (t / 0.22)                              # wind up
+        elif t < 0.5:
+            k = (t - 0.22) / 0.28
+            reach = -1.1 + (7.2 + 1.1) * (1 - (1 - k) ** 2)        # strike, ease-out
+        else:
+            k = (t - 0.5) / 0.5
+            reach = 7.2 * (1 - k * k * (3 - 2 * k))                # retract, smooth
         sxp, syp = xof(SHOULDER[0]), yof(SHOULDER[1])
         fx, fy = OFF_X + self.fish["x"] * PX, TOP_PAD + self.fish["y"] * PX
         ang = math.atan2(fy - syp, fx - sxp)
-        ln = t * PX * 6.5
-        ex, ey = sxp + math.cos(ang) * ln, syp + math.sin(ang) * ln
-        cv.create_line(sxp, syp, ex, ey, width=PX * 2.1, fill=pal["#"])
-        cv.create_line(sxp, syp, ex, ey, width=PX * 1.5, fill=pal["B"])
+        ex = sxp + math.cos(ang) * reach * PX
+        ey = syp + math.sin(ang) * reach * PX
+        # elbow bows outward when bent, straightens at full reach
+        bend = max(0.0, 1 - abs(reach) / 7.2) * 1.6 * PX
+        mx = (sxp + ex) / 2 - math.sin(ang) * bend
+        my = (syp + ey) / 2 + math.cos(ang) * bend
+        for x1, y1, x2, y2, wo, wi in ((sxp, syp, mx, my, PX * 2.2, PX * 1.6),
+                                       (mx, my, ex, ey, PX * 2.0, PX * 1.4)):
+            cv.create_line(x1, y1, x2, y2, width=wo, fill=pal["#"])
+            cv.create_line(x1, y1, x2, y2, width=wi, fill=pal["B"])
         cv.create_rectangle(ex - PX, ey - PX, ex + PX, ey + PX,
                             fill=pal["B"], outline=pal["#"])
 
