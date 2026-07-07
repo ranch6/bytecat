@@ -7,7 +7,7 @@
       content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" />
 <meta name="referrer" content="no-referrer" />
 <title>BYTECAT — the pixel cat in your computer</title>
-<meta name="description" content="Bytecat is a tiny pixel cat that lives on your desktop. It watches your cursor, kneads when you type, and naps when you do nothing." />
+<meta name="description" content="Bytecat is a tiny pixel cat that lives on your desktop. It watches your cursor, kneads when you type, overheats in a typing frenzy, and plays with a fish when it gets bored." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=VT323&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
@@ -26,12 +26,12 @@
   <div class="hero-text">
     <h1>A PIXEL CAT<br/>THAT LIVES IN<br/>YOUR COMPUTER</h1>
     <p class="hero-sub">
-      Bytecat watches your cursor, kneads the keyboard while you type,
-      overheats when you type too fast, and naps when you walk away.
-      Pick its fur to match the cat you already live with.
+      Bytecat watches your cursor, kneads while you type, overheats when you
+      type too fast — and when it gets bored, a little fish comes out to play.
+      Pick a coat to match the cat you already live with. Even a lucky one.
     </p>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="#download">GET THE CAT ▸</a>
+      <a class="btn btn-primary" href="downloads/bytecat.zip" download>DOWNLOAD ▸</a>
       <a class="btn btn-ghost" href="#showcase">SEE IT MOVE ↓</a>
     </div>
   </div>
@@ -42,41 +42,36 @@
       <span class="terminal-title">~/desktop</span>
     </div>
     <div class="terminal-body">
-      <canvas id="hero-cat" width="160" height="136"></canvas>
-      <p class="terminal-hint">move your mouse · pet its head slowly · type (fast!) · drag it · scroll</p>
-      <div class="swatches" id="swatches">
-        <button data-pattern="orange" class="swatch swatch-orange active" title="orange"></button>
-        <button data-pattern="gray"   class="swatch swatch-gray" title="gray"></button>
-        <button data-pattern="black"  class="swatch swatch-black" title="black"></button>
-        <button data-pattern="white"  class="swatch swatch-white" title="white"></button>
-        <button data-pattern="calico" class="swatch swatch-calico" title="calico"></button>
-      </div>
+      <canvas id="hero-cat"></canvas>
+      <p class="terminal-hint">move · pet its head slowly · type (fast!) · drag · scroll · or just wait…</p>
+      <div class="swatches" id="swatches"></div>
     </div>
   </div>
 </header>
 
 <section class="showcase" id="showcase">
   <h2>LOOK WHAT BYTECAT CAN DO<span class="accent">!</span></h2>
-  <p class="section-sub">It watches, stretches, kneads, wobbles — and occasionally overreacts.</p>
+  <p class="section-sub">Every demo below is the real cat engine, looping live.</p>
 
   <div class="features">
-    <article class="card"><span class="num">01</span><h3>YOUR CAT'S PATTERN</h3><p>Orange, gray, black, white, or calico — give the pixel cat the same fur as the real one on your couch.</p></article>
-    <article class="card"><span class="num">02</span><h3>EYE FOLLOW</h3><p>Wherever your mouse goes, two pixel pupils go too.</p></article>
-    <article class="card"><span class="num">03</span><h3>MOCHI DRAG</h3><p>Pick it up and it stretches like mochi. Cats are famously a liquid.</p></article>
-    <article class="card"><span class="num">04</span><h3>CURSOR HUNT</h3><p>Whip the mouse past it and the eyes go wide. It was definitely about to catch that.</p></article>
-    <article class="card"><span class="num">05</span><h3>HEAD PETS</h3><p>Stroke its head slowly with the cursor and it squints happily and floats little hearts.</p></article>
-    <article class="card"><span class="num">06</span><h3>KEYBOARD KNEADING</h3><p>While you type, tiny paws knead along with you. Biscuits are being made.</p></article>
-    <article class="card card-hot"><span class="num">07</span><h3>OVERHEAT MODE</h3><p>Type in a frenzy and the cat turns red with steam puffing off its head. Deadline mode.</p></article>
-    <article class="card"><span class="num">08</span><h3>STRETCH BREAKS</h3><p>Every 30/45/60 minutes the cat stretches tall and asks you to stretch with it.</p></article>
-    <article class="card"><span class="num">09</span><h3>PAPER UNROLL</h3><p>Scroll and the cat spools out a little strip of paper with its paws.</p></article>
-    <article class="card"><span class="num">10</span><h3>POMODORO TIMER</h3><p>25 minutes of focus, 5 of break, on a loop — with a pixel timer floating over the cat.</p></article>
-    <article class="card"><span class="num">11</span><h3>MESSAGE REMINDER</h3><p>"Remind me in 20 minutes to take out the laundry." The cat meows it at you, on time.</p></article>
-    <article class="card"><span class="num">12</span><h3>PINNED NOTE</h3><p>Pin an important note above the cat's head so it never leaves your sight.</p></article>
-    <article class="card"><span class="num">13</span><h3>TELL YOUR NAME</h3><p>Tell the cat your name and it uses it in reminders, breaks, and hellos.</p></article>
-    <article class="card"><span class="num">14</span><h3>PEEK MODE</h3><p>Watching a video? The cat tucks itself against the screen edge and only slides out to talk.</p></article>
-    <article class="card"><span class="num">15</span><h3>NAP MODE</h3><p>Step away and it falls asleep — z z z — until you come back.</p></article>
-    <article class="card"><span class="num">16</span><h3>MEOW ON DEMAND</h3><p>Double-click the desktop cat and it meows at you. That's it. That's the feature.</p></article>
-    <article class="card"><span class="num">17</span><h3>YOURS, EVERYWHERE</h3><p>No license keys here — copy the file to every computer you own and it remembers you on each.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="skins"></canvas><span class="num">01</span><h3>YOUR CAT'S COAT</h3><p>Patch, orange, calico, siamese, void, white — or a lucky cat with its red collar and gold bell.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="eyes"></canvas><span class="num">02</span><h3>EYE FOLLOW</h3><p>Wherever your mouse goes, the cat's eyes drift after it.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="drag"></canvas><span class="num">03</span><h3>MOCHI DRAG</h3><p>Pick it up and it stretches like mochi. Cats are famously a liquid.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="hunt"></canvas><span class="num">04</span><h3>CURSOR HUNT</h3><p>Whip the mouse past it and the eyes go wide. It was definitely about to catch that.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="pet"></canvas><span class="num">05</span><h3>HEAD PETS</h3><p>Stroke its head slowly and it closes its eyes, content, floating little hearts.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="knead"></canvas><span class="num">06</span><h3>KEYBOARD KNEADING</h3><p>While you type, tiny paws knead along with you. Biscuits are being made.</p></article>
+    <article class="card card-hot"><canvas class="card-demo" data-demo="overheat"></canvas><span class="num">07</span><h3>OVERHEAT MODE</h3><p>Type in a frenzy and the cat runs hot — flushed red with steam puffing off its head.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="stretch"></canvas><span class="num">08</span><h3>STRETCH BREAKS</h3><p>Every 30/45/60 minutes the cat grows tall and asks you to stretch with it.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="unroll"></canvas><span class="num">09</span><h3>PAPER UNROLL</h3><p>Scroll and the cat spools out a little strip of paper with its paws.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="pomodoro"></canvas><span class="num">10</span><h3>POMODORO TIMER</h3><p>25 minutes of focus, 5 of break, on a loop — a pixel timer floats over the cat.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="reminder"></canvas><span class="num">11</span><h3>MESSAGE REMINDER</h3><p>"Remind me in 20 minutes." The cat meows it at you, on time.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="note"></canvas><span class="num">12</span><h3>PINNED NOTE</h3><p>Pin an important note above the cat's head so it never leaves your sight.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="name"></canvas><span class="num">13</span><h3>TELL YOUR NAME</h3><p>Tell the cat your name and it greets you and uses it in reminders and breaks.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="peek"></canvas><span class="num">14</span><h3>PEEK MODE</h3><p>Watching a video? The cat tucks against the screen edge and only slides out to talk.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="fish"></canvas><span class="num">15</span><h3>FISH TIME</h3><p>Leave it alone long enough and a fish appears. The cat bats at it. The fish escapes. Repeat.</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="sleep"></canvas><span class="num">16</span><h3>NAP MODE</h3><p>Ignore it even longer and it gives up on the fish and falls asleep. z z z</p></article>
+    <article class="card"><canvas class="card-demo" data-demo="meow"></canvas><span class="num">17</span><h3>MEOW ON DEMAND</h3><p>Double-click the desktop cat and it meows at you. That's it. That's the feature.</p></article>
+    <article class="card card-plain"><span class="num">18</span><h3>YOURS, EVERYWHERE</h3><p>No accounts, no license keys, no telemetry. Copy one small file to every computer you own — each cat remembers its own human.</p></article>
   </div>
   <p class="more">MORE TINY CAT MOTIONS ARE ON THE WAY<span class="blink">…</span></p>
 </section>
@@ -85,24 +80,25 @@
   <div class="pricing-grid">
     <div class="pricing-copy">
       <h2>ONE CAT.<br/>READY FOR YOUR DESKTOP.</h2>
-      <p>The whole desktop cat, free forever. One tiny file — copy it to every computer you own.</p>
+      <p>The whole desktop cat, free forever. One tiny download — copy it to every computer you own.</p>
       <ul class="checks">
-        <li>✓ All features included</li>
-        <li>✓ Custom fur color &amp; pattern</li>
+        <li>✓ All 18 features included</li>
+        <li>✓ Seven coats, including lucky cat</li>
         <li>✓ Runs on macOS, Windows &amp; Linux</li>
-        <li>✓ Single Python file · no install · no telemetry</li>
-        <li>✓ Copy it to as many computers as you like</li>
+        <li>✓ No install · no account · no telemetry</li>
+        <li>✓ Settings live in one tiny file it keeps at home</li>
       </ul>
     </div>
     <div class="price-box">
       <div class="price-tag"><span class="cur">$</span><span class="big">0</span><span class="cents">.00</span></div>
       <div class="price-note">FREE · FOREVER · YOURS</div>
-      <a class="btn btn-primary btn-wide" href="downloads/bytecat.zip" download>DOWNLOAD BYTECAT ▸</a>
-      <div class="run-hint">
-        <p class="run-title">START IT:</p>
-        <code>macOS: double-click BYTECAT.command<br/>Windows: double-click BYTECAT.bat</code>
-        <p class="run-fine">The zip has the cat plus double-click launchers. Needs Python 3 with Tk (Windows installs from python.org have it; on macOS run <code>brew install python-tk</code> if missing). First launch on macOS: right-click → Open. Right-click the cat for all its settings. Prefer the bare file? <a href="downloads/bytecat.py" download>bytecat.py</a></p>
-      </div>
+      <a class="btn btn-primary btn-wide" href="downloads/bytecat.zip" download="bytecat.zip">DOWNLOAD BYTECAT ▸</a>
+      <ol class="steps">
+        <li><b>1.</b> Unzip the download.</li>
+        <li><b>2.</b> Double-click <code>BYTECAT</code>.<br/><span class="step-fine">mac: right-click → Open the first time · needs Python 3 (<code>brew install python-tk</code> if asked)</span></li>
+        <li><b>3.</b> That's it. Right-click the cat for settings.</li>
+      </ol>
+      <p class="run-fine">Prefer the bare file? <a href="downloads/bytecat.py" download>bytecat.py</a></p>
     </div>
   </div>
 </section>
