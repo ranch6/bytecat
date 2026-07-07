@@ -40,16 +40,18 @@ Copy the zip to any computer with Python 3 + Tk and double-click the launcher
 (macOS first launch: right-click → Open). Missing Tk? macOS:
 `brew install python-tk` · Linux: `sudo apt install python3-tk`.
 
-Features: fur patterns (orange/gray/black/white/calico), eye-follow anywhere
-on screen, cursor hunt, mochi drag, head pets with hearts, keyboard kneading,
-**overheat mode** (red + steam when you type in a frenzy), stretch-break
-reminders, paper unroll on scroll, a 25/5 pomodoro with floating pixel timer,
-timed message reminders, a pinned note, it calls you by name, peek mode
-(tucks against the screen edge), nap mode, and meow on demand (double-click).
+Features: seven coats (patch/orange/calico/siamese/void/white/**lucky cat**
+with red collar and bell), eased eye-follow anywhere on screen, cursor hunt,
+mochi drag, head pets with hearts, keyboard kneading, **overheat mode** (red +
+steam when you type in a frenzy), **fish time** (a fish appears when the cat
+is bored; the cat bats it into the air and it tumbles back down), stretch-break
+reminders, a 25/5 pomodoro with floating pixel timer, timed message reminders,
+a pinned note, it calls you by name, peek mode (tucks against the screen edge),
+nap mode with a slow-swishing tail, and meow on demand (double-click).
 Right-click the cat for all settings; they persist in `~/.bytecat.json`.
 
-Keyboard/scroll reactions work globally only if the optional `pynput` package
-is installed (`python3 -m pip install pynput`; macOS asks for Input Monitoring
+Keyboard reactions work globally only if the optional `pynput` package is
+installed (`python3 -m pip install pynput`; macOS asks for Input Monitoring
 permission). Privacy: it only *counts* keystrokes to animate the paws — it
 never records which keys are pressed, stores nothing, sends nothing. Without
 pynput, those reactions work when the cat window itself has focus.

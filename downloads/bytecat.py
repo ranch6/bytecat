@@ -4,9 +4,9 @@ BYTECAT — a pixel cat that lives on your desktop.
 
 One file. Only Python's built-in tkinter is required.
 If `pynput` is installed (optional: pip install pynput), Bytecat also reacts
-to typing and scrolling anywhere on your system: keyboard kneading, overheat
-mode, and paper unroll. PRIVACY: it only counts keystrokes to animate paws —
-it never records WHICH keys you press, stores nothing, and sends nothing.
+to typing anywhere on your system: keyboard kneading and overheat mode.
+PRIVACY: it only counts keystrokes to animate paws — it never records WHICH
+keys you press, stores nothing, and sends nothing.
 
 Run:            python3 bytecat.py      (or double-click the launcher)
 Move it:        drag the cat anywhere
@@ -32,41 +32,46 @@ from tkinter import simpledialog
 # ---------------------------------------------------------------- sprite ----
 # legend: . none | # outline | B base | G patch | S spot | P inner ear | R blush
 SPRITE = [
-    "..................................",
-    "................#..........#......",
-    "................##.........##.....",
-    "...............#G#........#B#.....",
-    "...............#PG########BPB#....",
-    "..............#PPPGBBBBBBBPPP#....",
-    ".............##GGGGGBBBBBBBBBB#...",
-    "...............#GGGGBBBBBBBBB#....",
-    "..............#GGGGGBBBBBBBBBB#...",
-    "..............#GGGGGBBBBBBBBBB#...",
-    "..........####GGGGGGBBBBBBBBBBB#..",
-    "......####GGGGGGGGGGBBBBBBBBBBB#..",
-    ".....#BBBBBGGGGGGGGBBBBBBBBBBBB#..",
-    "...##BBSSBBBBGGGGBBBBBBBBBBBBBB#..",
-    "...#BBSSSSBBBBBBBBBBBBBBBBBBBBB#..",
-    "..#BGGSSSSBBBBBBRRRBBBBBBBRRRB#...",
-    "..#GGGGGSBBBBBBBBBBBBBBBBBBBBB#...",
-    "..#GGGGGGBBBBBBBBBBBBBBBBBBBB#....",
-    "..#GGGGGGBBBBBBBBBBBBBBBBBBB#.....",
-    "..#GGGGGGBBBBBBBBBBBBBBBBB##......",
-    "..#GGGGGGBBBBBBBB#BBB#####........",
-    "...#####BBBBBBBBB#B##.............",
-    "........###########...............",
-    "..................................",
+    "...........#...........#..........",
+    "...........##.........##..........",
+    "..........#P#.#######.#P#.........",
+    "..........#PP#BBBBBGG#PP#.........",
+    ".........#PPPBBBBBGGGGPPP#........",
+    ".........#BBBBBBBBGGGGGGG#........",
+    "........##BBBBBBBGGGGGGGG##.......",
+    "..........#BBBBBBGGGGGGG#.........",
+    "..........#BBBBBBBGGGGGG#.........",
+    "..........#BBBBBBBGGGGGG#.........",
+    "..........#BBBBBBBBGGGGG#.........",
+    "..........#BBBBBBBBBBBBB#.........",
+    "...........#RBBBBBBBBBR#..........",
+    "...........#RBBBBBBBBBR#..........",
+    "...........#BBBBBBBBBBB#..........",
+    "..........#GBBBBBBBBBBBB#.........",
+    ".........#GGGBBBBBBBBBBBB#........",
+    ".........#GGGBBBBBBBBBBBB#........",
+    ".....####GGGG#BBBBBB#BBBBB####....",
+    ".....#GGGGGGG#BBBBBB#BBBBBSSB#....",
+    "....#BGGGGGGB#BB##BB#BBBBSSSSB#...",
+    "....#BBBBBBBB#BB##BB#BBBBSSSSB#...",
+    "....#BBBBBBBB#BB##BB#BBBBBSSBB#...",
+    "....#BBBBBBBB#BB##BB#BBBBBBBBB#...",
+    ".....#BBBB##B#BB##BB#BB##BBBB#....",
+    "......####..###########..####.....",
 ]
-COLS, ROWS = 34, 24
+COLS, ROWS = 34, 26
 PX = 6
-OFF_X = 46                    # cat's left edge inside the window
-TOP_PAD = 60                  # headroom for bubbles / timers / fish
+OFF_X = 46
+TOP_PAD = 56
 W = 300
 H = TOP_PAD + ROWS * PX + 8
 
-EYE_L, EYE_R = (18.2, 11.0), (25.2, 11.0)   # (col, row)
-NOSE = (22.0, 13.4)
-HEAD = {"c0": 14, "c1": 31, "r0": 1, "r1": 16}
+EYE_L, EYE_R = (12.8, 7.6), (19.8, 7.6)      # (col, row)
+NOSE = (16.5, 10.8)
+HEAD = {"c0": 9, "c1": 25, "r0": 0, "r1": 14}
+TAIL_ROOT = (28.2, 22.0)
+SHOULDER = (11.2, 18.0)
+FISH_BASE_ROW = 17.5
 CONFIG = Path.home() / ".bytecat.json"
 
 PINK, BLUSH = "#e9a0ab", "#f2b8bc"
@@ -102,7 +107,7 @@ class ByteCat:
         self.peek = cfg.get("peek", False)
         self.pinned = cfg.get("pinned", "")
 
-        self.state = "idle"      # idle|pet|sleep|meow|alert|knead|overheat|stretch|unroll
+        self.state = "idle"      # idle|pet|sleep|meow|alert|knead|overheat|stretch
         self.state_until = 0.0
         self.blink_until = 0.0
         self.next_blink = time.time() + random.uniform(2, 5)
@@ -119,14 +124,14 @@ class ByteCat:
         self.key_count = 0
         self._keys_seen = 0
         self.key_times = []
-        self.scroll_heat = 0.0
-        self.unroll_len = 0.0
-        self.gaze = (0.0, 0.0)
+        self.gaze = [0.0, 0.0]
+        self.gaze_target = [0.0, 0.0]
 
-        # fish (boredom toy)
-        self.fish_t0 = None
+        # fish toy: dict(x, y in cells, vx, vy, dir, phase, spin, born) or None
+        self.fish = None
         self.fish_cooldown_until = 0.0
-        self.swipe_until = 0.0
+        self.swipe_start = 0.0
+        self.swipe_hit = False
 
         root.overrideredirect(True)
         try:
@@ -194,21 +199,17 @@ class ByteCat:
 
     # --------------------------------------------------- global listeners --
     def _start_global_listeners(self):
-        """Optional pynput hooks. We only COUNT events — never their content."""
+        """Optional pynput hook. We only COUNT keystrokes — never their content."""
         self.has_pynput = False
         try:
-            from pynput import keyboard, mouse
+            from pynput import keyboard
         except ImportError:
             return
         try:
             def on_press(_key):          # _key is deliberately ignored
                 self.key_count += 1
 
-            def on_scroll(_x, _y, _dx, dy):
-                self.scroll_heat = min(self.scroll_heat + abs(dy) * 2 + 1, 30)
-
             keyboard.Listener(on_press=on_press, daemon=True).start()
-            mouse.Listener(on_scroll=on_scroll, daemon=True).start()
             self.has_pynput = True
         except Exception:
             pass
@@ -260,8 +261,8 @@ class ByteCat:
 
     def _wake(self, now):
         self.last_pointer_move = now
-        if self.fish_t0 is not None:
-            self.fish_t0 = None
+        if self.fish is not None:
+            self.fish = None
             self.fish_cooldown_until = now + 30
         if self.state == "sleep":
             self.state = "idle"
@@ -366,7 +367,7 @@ class ByteCat:
         if new_keys:
             self.key_times += [now] * min(new_keys, 6)
             self.key_times = [t for t in self.key_times if now - t < 2.0]
-            self._wake(now)
+            self.last_pointer_move = now
             if len(self.key_times) > 14:
                 if self.state != "overheat":
                     self._say("too fast!!", 2)
@@ -374,25 +375,19 @@ class ByteCat:
             elif self.state in ("idle", "sleep", "knead"):
                 self.state, self.state_until = "knead", now + 0.7
         if self.state == "overheat" and random.random() < 0.5:
-            self._spawn("steam", OFF_X + random.randint(15, 27) * PX, TOP_PAD - 6)
-
-        # paper unroll on scroll
-        self.scroll_heat = max(0.0, self.scroll_heat - 0.8)
-        if self.scroll_heat > 2 and self.state in ("idle", "knead", "alert"):
-            self.state, self.state_until = "unroll", now + 1.0
-        target_len = min(self.scroll_heat * 6, 80) if self.state == "unroll" else 0
-        self.unroll_len += (target_len - self.unroll_len) * 0.3
+            self._spawn("steam", OFF_X + random.randint(12, 22) * PX, TOP_PAD - 6)
 
         # bored -> fish time; very bored -> sleep
         idle_for = now - self.last_pointer_move
-        if (self.fish_t0 is None and self.state == "idle" and
+        if (self.fish is None and self.state == "idle" and
                 25 < idle_for < 150 and now > self.fish_cooldown_until):
-            self.fish_t0 = now
-        if self.fish_t0 is not None and now - self.fish_t0 > 14:
-            self.fish_t0 = None
+            self._spawn_fish(now)
+        if (self.fish is not None and now - self.fish["born"] > 16 and
+                self.fish["phase"] == "swim"):
+            self.fish = None
             self.fish_cooldown_until = now + 40
-        if self.fish_t0 is not None and random.random() < 0.012 and now > self.swipe_until:
-            self.swipe_until = now + 0.7
+        if self.fish is not None:
+            self._fish_tick(now)
 
         # timers: pomodoro / reminders / stretch breaks
         if self.pomo and now > self.pomo["until"]:
@@ -418,41 +413,72 @@ class ByteCat:
         self.pet_heat = max(0.0, self.pet_heat - 0.4)
         if self.state not in ("idle", "sleep") and now > self.state_until:
             self.state = "idle"
-        if self.state == "idle" and self.fish_t0 is None and idle_for > 180:
+        if self.state == "idle" and self.fish is None and idle_for > 180:
             self.state = "sleep"
         if self.state == "sleep" and random.random() < 0.03:
-            self._spawn("zzz", OFF_X + 27 * PX, TOP_PAD - 6)
+            self._spawn("zzz", OFF_X + 26 * PX, TOP_PAD - 6)
         if now > self.next_blink:
             self.blink_until = now + 0.14
             self.next_blink = now + random.uniform(2.5, 6)
         if self.bubble and now > self.bubble["until"]:
             self.bubble = None
 
-        # gaze: fish beats pointer
-        if self.fish_t0 is not None:
-            fx, fy = self._fish_pos(now)
-            self._gaze_at_local(fx, fy)
+        # gaze: fish beats pointer; eased so the eyes feel alive
+        if self.fish is not None:
+            self._gaze_at_local(OFF_X + self.fish["x"] * PX, TOP_PAD + self.fish["y"] * PX)
         else:
-            cx = wx + OFF_X + 22 * PX
-            cy = wy + TOP_PAD + 12 * PX
-            self.gaze = (max(-1.0, min(1.0, (px_ - cx) / 300)),
-                         max(-0.7, min(1.0, (py_ - cy) / 300)))
+            cx = wx + OFF_X + 17 * PX
+            cy = wy + TOP_PAD + 9 * PX
+            self.gaze_target = [max(-1.0, min(1.0, (px_ - cx) / 260)),
+                                max(-0.8, min(1.0, (py_ - cy) / 220))]
+        self.gaze[0] += (self.gaze_target[0] - self.gaze[0]) * 0.35
+        self.gaze[1] += (self.gaze_target[1] - self.gaze[1]) * 0.35
 
         self._apply_peek(now)
         self._draw(now)
         self.root.after(80, self._tick)
 
     def _gaze_at_local(self, x, y):
-        cx, cy = OFF_X + 22 * PX, TOP_PAD + 12 * PX
-        self.gaze = (max(-1.0, min(1.0, (x - cx) / 120)),
-                     max(-0.7, min(1.0, (y - cy) / 120)))
+        cx, cy = OFF_X + 17 * PX, TOP_PAD + 9 * PX
+        self.gaze_target = [max(-1.0, min(1.0, (x - cx) / 110)),
+                            max(-0.8, min(1.0, (y - cy) / 95))]
 
-    def _fish_pos(self, now):
-        t = now - (self.fish_t0 or now)
-        fleeing = abs(now - self.swipe_until) < 0.25
-        x = OFF_X + (10 + math.sin(t * 0.9) * 7 + (6 if fleeing else 0)) * PX
-        y = (16 + math.sin(t * 2.2) * 9) - (12 if fleeing else 0) + 8
-        return x, y
+    # ------------------------------------------------------------- fish ----
+    def _spawn_fish(self, now):
+        self.fish = {"x": -3.0, "y": FISH_BASE_ROW, "vx": 0.0, "vy": 0.0,
+                     "dir": 1, "phase": "swim", "spin": 0, "born": now}
+
+    def _fish_tick(self, now):
+        f = self.fish
+        if f["phase"] == "swim":
+            f["x"] += f["dir"] * 0.35            # cells per 80ms tick
+            f["y"] = FISH_BASE_ROW + math.sin(now * 2.4) * 1.1
+            if f["x"] > 10.6:
+                f["dir"] = -1
+            if f["x"] < 0.6 and f["dir"] == -1:
+                f["dir"] = 1
+            if f["x"] > 8.2 and f["dir"] == 1 and now - self.swipe_start > 2.2:
+                self.swipe_start = now
+                self.swipe_hit = False
+            st = now - self.swipe_start
+            if not self.swipe_hit and 0.14 < st < 0.3 and f["x"] > 6.5:
+                self.swipe_hit = True
+                f["phase"] = "toss"
+                f["vx"] = -(1.1 + random.random() * 0.6)
+                f["vy"] = -(2.4 + random.random() * 0.9)
+                f["spin"] = 0
+        else:                                     # toss: gravity + tumble
+            f["vy"] += 0.85
+            f["x"] += f["vx"]
+            f["y"] += f["vy"]
+            f["spin"] += 1
+            if f["y"] >= FISH_BASE_ROW and f["vy"] > 0:
+                f["phase"] = "swim"
+                f["y"] = FISH_BASE_ROW
+                f["spin"] = 0
+                f["dir"] = 1 if f["x"] < 1.5 else -1
+            if f["x"] < -4:
+                f.update(x=-3.0, phase="swim", spin=0, dir=1)
 
     def _apply_peek(self, _now):
         if not self.peek or self.dragging:
@@ -470,24 +496,24 @@ class ByteCat:
         cv.delete("all")
         pal = SKINS[self.skin]
 
-        bob = 1 if math.sin(now * 1.4) > 0.75 else 0
-        if self.state == "overheat":
-            bob = int(now * 16) % 2
+        breathe = 1 + math.sin(now * 0.9) * 0.011
         shiver = (1 if int(now * 16) % 2 else -1) if self.state == "overheat" else 0
-        sy = 1.0
+        sy = breathe
         if self.dragging:
-            sy = 1.22
+            sy += 0.24
         elif self.state == "stretch":
-            sy = 1.0 + 0.35 * (0.5 + 0.5 * abs(math.sin(now * 2)))
+            sy += 0.33 * (0.5 + 0.5 * abs(math.sin(now * 2)))
 
-        bottom = TOP_PAD + ROWS * PX + bob
+        bottom = TOP_PAD + ROWS * PX
         yof = lambda r: bottom - (ROWS - r) * PX * sy
         xof = lambda c: OFF_X + c * PX + shiver
         ph = PX * sy + 0.6
 
+        self._draw_tail(now, pal, xof, yof)
+
         knead = None
         if self.state == "knead":
-            knead = (14, 19) if int(now * 6) % 2 == 0 else (20, 25)
+            knead = (14, 15) if int(now * 6) % 2 == 0 else (18, 19)
 
         for r, row in enumerate(SPRITE):
             for c, ch in enumerate(row):
@@ -502,107 +528,123 @@ class ByteCat:
                 if ch in "BGS" and self.state == "overheat":
                     color = blend(color, "#d86a5a", 0.4)
                 y = yof(r)
-                if r >= ROWS - 4 and knead and any(k <= c <= k + 2 for k in knead):
-                    y -= PX * 0.7
+                if r >= ROWS - 6 and knead and c in knead:
+                    y -= PX * 0.8
                 cv.create_rectangle(xof(c), y, xof(c) + PX, y + ph, fill=color, width=0)
 
         if pal.get("collar"):
-            cv.create_rectangle(xof(15.5), yof(16.6), xof(15.5) + PX * 14.5,
-                                yof(16.6) + PX * 1.1, fill="#c8433e", width=0)
-            cv.create_rectangle(xof(21.6), yof(17.6), xof(21.6) + PX * 1.6,
-                                yof(17.6) + PX * 1.6, fill="#e8b93c", width=0)
-            cv.create_rectangle(xof(22.1), yof(18.2), xof(22.1) + PX * 0.6,
-                                yof(18.2) + PX * 0.6, fill=pal["#"], width=0)
+            cv.create_rectangle(xof(11.6), yof(14.2), xof(11.6) + PX * 10.8,
+                                yof(14.2) + PX * 1.1, fill="#c8433e", width=0)
+            cv.create_rectangle(xof(16.4), yof(15.1), xof(16.4) + PX * 1.6,
+                                yof(15.1) + PX * 1.6, fill="#e8b93c", width=0)
+            cv.create_rectangle(xof(16.9), yof(15.7), xof(16.9) + PX * 0.6,
+                                yof(15.7) + PX * 0.6, fill=pal["#"], width=0)
 
         self._draw_face(now, pal, xof, yof)
-        if self.fish_t0 is not None:
+        if self.fish is not None:
             self._draw_fish(now)
-        if now < self.swipe_until:
-            self._draw_swipe(now, pal)
-        self._draw_paper(pal)
+            self._draw_swipe(now, pal, xof, yof)
         self._draw_particles()
         self._draw_texts(now)
+
+    def _draw_tail(self, now, pal, xof, yof):
+        cv = self.canvas
+        asleep = self.state == "sleep"
+        sway = math.sin(now / (1.8 if asleep else 0.75)) * (0.1 if asleep else 0.28)
+        lift = 0.35 if self.state == "alert" else 0
+        x, y = xof(TAIL_ROOT[0]), yof(TAIL_ROOT[1])
+        ang = 0.18 + sway * 0.5 + lift
+        w = PX * 1.7
+        for _ in range(9):
+            ang += 0.16 + sway * 0.14 + lift * 0.04
+            x += math.cos(ang) * PX * 1.05
+            y -= math.sin(ang) * PX * 1.05
+            cv.create_rectangle(x - w / 2 - 1, y - w / 2 - 1, x + w / 2 + 1, y + w / 2 + 1,
+                                fill=pal["#"], width=0)
+            cv.create_rectangle(x - w / 2, y - w / 2, x + w / 2, y + w / 2,
+                                fill=pal["G"], width=0)
 
     def _draw_face(self, now, pal, xof, yof):
         cv = self.canvas
         closed = now < self.blink_until or self.state in ("sleep", "pet")
         dark = "#e8e4da" if self.skin == "void" else pal["#"]
-        gx, gy = self.gaze[0] * PX * 0.6, self.gaze[1] * PX * 0.5
+        gx, gy = self.gaze[0] * PX * 1.3, self.gaze[1] * PX * 1.0
 
         for ec, er in (EYE_L, EYE_R):
             x, y = xof(ec), yof(er)
             if closed:
                 if self.state == "pet":
-                    cv.create_rectangle(x, y + PX * 1.2, x + PX * 0.6, y + PX * 1.8, fill=dark, width=0)
-                    cv.create_rectangle(x + PX * 0.5, y + PX * 0.7, x + PX * 1.4, y + PX * 1.3, fill=dark, width=0)
-                    cv.create_rectangle(x + PX * 1.3, y + PX * 1.2, x + PX * 1.9, y + PX * 1.8, fill=dark, width=0)
+                    cv.create_rectangle(x, y + PX * 1.4, x + PX * 0.6, y + PX * 2.0, fill=dark, width=0)
+                    cv.create_rectangle(x + PX * 0.5, y + PX * 0.9, x + PX * 1.4, y + PX * 1.5, fill=dark, width=0)
+                    cv.create_rectangle(x + PX * 1.3, y + PX * 1.4, x + PX * 1.9, y + PX * 2.0, fill=dark, width=0)
                 else:
-                    cv.create_rectangle(x, y + PX * 1.1, x + PX * 1.9, y + PX * 1.65, fill=dark, width=0)
+                    cv.create_rectangle(x, y + PX * 1.3, x + PX * 1.9, y + PX * 1.85, fill=dark, width=0)
                 continue
             wide = self.state == "alert"
-            w = PX * (2.2 if wide else 1.8)
-            h = PX * (3.0 if wide else 2.6)
-            cv.create_rectangle(x + gx, y + gy + PX * 0.3, x + gx + w, y + gy + h - PX * 0.3, fill=dark, width=0)
-            cv.create_rectangle(x + gx + PX * 0.25, y + gy, x + gx + w - PX * 0.25, y + gy + h, fill=dark, width=0)
+            w = PX * (2.1 if wide else 1.7)
+            h = PX * (3.0 if wide else 2.5)
+            cv.create_rectangle(x + gx, y + gy + PX * 0.3, x + gx + w, y + gy + h - PX * 0.3,
+                                fill=dark, width=0)
+            cv.create_rectangle(x + gx + PX * 0.25, y + gy, x + gx + w - PX * 0.25, y + gy + h,
+                                fill=dark, width=0)
 
         # nose + flat blank mouth
-        nx, ny = xof(NOSE[0]), yof(NOSE[1])
-        cv.create_rectangle(nx - PX * 0.1, ny, nx + PX * 1.1, ny + PX * 0.8, fill="#c98a80", width=0)
+        cv.create_rectangle(xof(16.5), yof(10.8), xof(16.5) + PX * 1.2,
+                            yof(10.8) + PX * 0.8, fill="#c98a80", width=0)
         if self.state in ("meow", "overheat"):
-            cv.create_rectangle(xof(21.7), yof(14.6), xof(21.7) + PX * 1.6,
-                                yof(14.6) + PX * 1.2, fill=pal["#"], width=0)
+            cv.create_rectangle(xof(16.3), yof(12.1), xof(16.3) + PX * 1.6,
+                                yof(12.1) + PX * 1.2, fill=dark, width=0)
         else:
-            cv.create_rectangle(xof(21.4), yof(14.7), xof(21.4) + PX * 2.2,
-                                yof(14.7) + PX * 0.4, fill=pal["#"], width=0)
+            cv.create_rectangle(xof(16.0), yof(12.2), xof(16.0) + PX * 2.2,
+                                yof(12.2) + PX * 0.4, fill=dark, width=0)
         # whiskers
-        for wx_, wy_ in ((30.6, 12.4), (30.3, 14.2)):
+        for wx_, wy_ in ((25.2, 9.6), (24.9, 11.4), (6.2, 9.6), (6.5, 11.4)):
             cv.create_rectangle(xof(wx_), yof(wy_), xof(wx_) + PX * 2.6,
-                                yof(wy_) + PX * 0.35, fill=pal["#"], width=0)
-        cv.create_rectangle(xof(12.4), yof(13.2), xof(12.4) + PX * 2.2,
-                            yof(13.2) + PX * 0.35, fill=pal["#"], width=0)
+                                yof(wy_) + PX * 0.35, fill=dark, width=0)
         if self.state == "meow":
-            cv.create_text(xof(31), yof(4), text="meow!", anchor="w",
+            cv.create_text(xof(28), yof(3), text="meow!", anchor="w",
                            font=("Courier", 13, "bold"), fill="#e5484d")
 
     def _draw_fish(self, now):
         cv = self.canvas
-        fx, fy = self._fish_pos(now)
-        flip = -1 if math.cos((now - (self.fish_t0 or now)) * 0.9) < 0 else 1
+        f = self.fish
+        fx, fy = OFF_X + f["x"] * PX, TOP_PAD + f["y"] * PX
+        if f["phase"] == "swim":
+            flip = f["dir"]
+        else:
+            flip = -1 if f["vx"] < 0 else 1
+            if f["spin"] % 2:                     # crude tumble: flip while tossed
+                flip = -flip
         p = PX
 
         def rect(x0, y0, w, h, color):
             if flip == -1:
-                x0 = 5.7 * p - x0 - w
-            cv.create_rectangle(fx + x0, fy + y0, fx + x0 + w, fy + y0 + h, fill=color, width=0)
+                x0 = -x0 - w
+            cv.create_rectangle(fx + x0, fy + y0, fx + x0 + w, fy + y0 + h,
+                                fill=color, width=0)
 
-        rect(0.8 * p, 0, 3.4 * p, 2.6 * p, FISH_BLUE)
-        rect(0.2 * p, 0.6 * p, 4.6 * p, 1.4 * p, FISH_BLUE)
-        rect(4.4 * p, -0.3 * p, 1.3 * p, 1.2 * p, FISH_BLUE)
-        rect(4.4 * p, 1.7 * p, 1.3 * p, 1.2 * p, FISH_BLUE)
-        rect(1.4 * p, 0.7 * p, 0.7 * p, 0.7 * p, FISH_DARK)
-        rect(2.6 * p, 0.3 * p, 0.5 * p, 2.0 * p, FISH_DARK)
+        rect(-2.0 * p, -1.3 * p, 3.4 * p, 2.6 * p, FISH_BLUE)
+        rect(-2.6 * p, -0.7 * p, 4.6 * p, 1.4 * p, FISH_BLUE)
+        rect(1.6 * p, -1.6 * p, 1.3 * p, 1.2 * p, FISH_BLUE)
+        rect(1.6 * p, 0.4 * p, 1.3 * p, 1.2 * p, FISH_BLUE)
+        rect(-1.5 * p, -0.6 * p, 0.7 * p, 0.7 * p, FISH_DARK)
+        rect(-0.2 * p, -1.0 * p, 0.5 * p, 2.0 * p, FISH_DARK)
 
-    def _draw_swipe(self, now, pal):
-        cv = self.canvas
-        t = 1 - abs((self.swipe_until - now) / 0.7 * 2 - 1)
-        reach = max(0.0, t * 5.5)
-        x = OFF_X + 17.5 * PX
-        base = TOP_PAD + 18 * PX
-        cv.create_rectangle(x, base - reach * PX, x + PX * 2.4, base + PX,
-                            fill=pal["B"], outline=pal["#"])
-
-    def _draw_paper(self, pal):
-        if self.unroll_len < 3:
+    def _draw_swipe(self, now, pal, xof, yof):
+        st = now - self.swipe_start
+        if st < 0 or st > 0.48:
             return
         cv = self.canvas
-        x0 = OFF_X + 6 * PX
-        y0 = TOP_PAD + (ROWS - 2.4) * PX
-        ln = self.unroll_len
-        cv.create_rectangle(x0, y0, x0 + ln, y0 + PX * 1.6, fill="#f5f5f5", outline=pal["#"])
-        for i in range(int(ln // 12)):
-            lx = x0 + 6 + i * 12
-            cv.create_line(lx, y0 + 3, lx + 6, y0 + 3, fill="#9a9a9a")
-            cv.create_line(lx, y0 + 8, lx + 6, y0 + 8, fill="#9a9a9a")
+        t = math.sin((st / 0.48) * math.pi)
+        sxp, syp = xof(SHOULDER[0]), yof(SHOULDER[1])
+        fx, fy = OFF_X + self.fish["x"] * PX, TOP_PAD + self.fish["y"] * PX
+        ang = math.atan2(fy - syp, fx - sxp)
+        ln = t * PX * 6.5
+        ex, ey = sxp + math.cos(ang) * ln, syp + math.sin(ang) * ln
+        cv.create_line(sxp, syp, ex, ey, width=PX * 2.1, fill=pal["#"])
+        cv.create_line(sxp, syp, ex, ey, width=PX * 1.5, fill=pal["B"])
+        cv.create_rectangle(ex - PX, ey - PX, ex + PX, ey + PX,
+                            fill=pal["B"], outline=pal["#"])
 
     def _draw_particles(self):
         cv = self.canvas

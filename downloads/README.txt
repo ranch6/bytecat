@@ -17,13 +17,16 @@ Use it
   drag           move the cat
   slow hover     pet its head (hearts!)
   double-click   meow
-  right-click    fur pattern, your name, pomodoro, reminders,
+  right-click    coat (incl. lucky cat), your name, pomodoro, reminders,
                  pinned note, stretch breaks, peek mode, quit
 
-Optional: keyboard & scroll reactions
--------------------------------------
-Kneading, overheat mode, and paper unroll react to typing/scrolling in
-OTHER apps only if you install pynput:
+Leave it alone for a bit and a little fish comes out to play.
+Ignore it even longer and it falls asleep.
+
+Optional: global keyboard reactions
+-----------------------------------
+Kneading and overheat mode react to typing in OTHER apps only if you
+install pynput:
 
   python3 -m pip install pynput
 
@@ -32,4 +35,4 @@ counts keystrokes to animate paws — it never records which keys you press,
 stores nothing, and sends nothing. Without pynput those features still work
 whenever the cat window itself has focus.
 
-Your settings (name, fur, etc.) are saved in ~/.bytecat.json
+Your settings (name, coat, etc.) are saved in ~/.bytecat.json
