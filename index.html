@@ -9,103 +9,143 @@
 <title>BYTECAT — the pixel cat in your computer</title>
 <meta name="description" content="Bytecat is a tiny pixel cat that lives on your desktop. It watches your cursor, kneads when you type, overheats in a typing frenzy, and plays with a fish when it gets bored." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=VT323&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<nav class="nav">
-  <a class="nav-logo" href="#top">BYTECAT<span class="blink">_</span></a>
-  <div class="nav-links">
-    <a href="#showcase">SHOWCASE</a>
-    <a href="#download">DOWNLOAD</a>
-  </div>
-</nav>
+<header class="chapter-bar">
+  <h1 class="chapter-title">CH. 1 / BYTECAT</h1>
+  <nav class="chapter-nav">
+    <a href="#showcase">FIGURES</a>
+    <a href="#install">INSTALLATION</a>
+    <span class="chapter-page">/ 001</span>
+  </nav>
+</header>
 
-<header class="hero" id="top">
-  <div class="hero-text">
-    <h1>A PIXEL CAT<br/>THAT LIVES IN<br/>YOUR COMPUTER</h1>
-    <p class="hero-sub">
-      Bytecat watches your cursor, kneads while you type, overheats when you
-      type too fast — and when it gets bored, a little fish comes out to play.
-      Pick a coat to match the cat you already live with. Even a lucky one.
-    </p>
-    <div class="hero-cta">
-      <a class="btn btn-primary" href="downloads/bytecat.zip" download>DOWNLOAD ▸</a>
-      <a class="btn btn-ghost" href="#showcase">SEE IT MOVE ↓</a>
+<p class="abstract">
+  <mark>Abstract.</mark> BYTECAT is a pixel cat that lives in your computer.
+  It watches your cursor, kneads while you type, overheats when you type too
+  fast — and when it gets bored, a little fish comes out to play. Subject is
+  distributed as a single file and settles on any desk it is copied to.
+</p>
+
+<section class="ledger" id="top">
+
+  <div class="index-column">
+    <div class="index-tab">IDENTITY</div>
+    <a class="index-row" href="#fig-skins"><b>001</b> COAT REGISTRY</a>
+    <a class="index-row" href="#fig-name"><b>002</b> TELL YOUR NAME</a>
+
+    <div class="index-tab">REFLEXES</div>
+    <a class="index-row" href="#fig-eyes"><b>003</b> EYE FOLLOW</a>
+    <a class="index-row" href="#fig-hunt"><b>004</b> CURSOR HUNT</a>
+    <a class="index-row" href="#fig-pet"><b>005</b> HEAD PETS</a>
+    <a class="index-row" href="#fig-knead"><b>006</b> KEYBOARD KNEADING</a>
+    <a class="index-row" href="#fig-overheat"><b>007</b> OVERHEAT MODE</a>
+    <a class="index-row" href="#fig-drag"><b>008</b> MOCHI DRAG</a>
+
+    <div class="index-tab">DIVERSIONS</div>
+    <a class="index-row" href="#fig-fish"><b>009</b> FISH TIME</a>
+    <a class="index-row" href="#fig-sleep"><b>010</b> NAP MODE</a>
+    <a class="index-row" href="#fig-meow"><b>011</b> MEOW ON DEMAND</a>
+
+    <div class="index-tab">CLERICAL</div>
+    <a class="index-row" href="#fig-pomodoro"><b>012</b> POMODORO TIMER</a>
+    <a class="index-row" href="#fig-reminder"><b>013</b> MESSAGE REMINDER</a>
+    <a class="index-row" href="#fig-note"><b>014</b> PINNED NOTE</a>
+    <a class="index-row" href="#fig-stretch"><b>015</b> STRETCH BREAKS</a>
+    <a class="index-row" href="#fig-peek"><b>016</b> PEEK MODE</a>
+
+    <div class="index-actions">
+      <a class="btn btn-primary" href="#install">INSTALL ▸</a>
+      <a class="btn" href="#showcase">AUTO SEEK ↓</a>
     </div>
   </div>
 
-  <div class="terminal">
-    <div class="terminal-bar">
-      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-      <span class="terminal-title">~/desktop</span>
+  <div class="subject-panel">
+    <div class="subject-head">
+      <span class="subject-title">SUBJECT 001: FELIS CATUS / DIGITAL</span>
+      <span class="badge">LIVE INDEXING</span>
     </div>
-    <div class="terminal-body">
+    <div class="subject-body grid-paper">
       <canvas id="hero-cat"></canvas>
-      <p class="terminal-hint">move your mouse · pet its head slowly · type (fast!) · drag · or just wait…</p>
+      <div class="status-box" id="status-box">
+        <div>[SYSTEM_STATUS]: NOMINAL</div>
+        <div>[CAT_COORDS]: —</div>
+        <div>[FISH_COORDS]: —</div>
+        <div>[PROXIMITY]: —</div>
+        <div>[BUFFER]: STABLE</div>
+      </div>
+    </div>
+    <div class="subject-foot">
+      <span class="hint">move your mouse · pet its head slowly · type (fast!) · drag · or just wait…</span>
       <div class="swatches" id="swatches"></div>
     </div>
   </div>
-</header>
+</section>
+<p class="figure-caption"><mark>Figure 1-1. Speed Index Interaction Log</mark></p>
 
 <section class="showcase" id="showcase">
-  <h2>LOOK WHAT BYTECAT CAN DO<span class="accent">!</span></h2>
-  <p class="section-sub">Every demo below is the real cat engine, looping live.</p>
+  <header class="chapter-bar chapter-bar-sub">
+    <h2 class="chapter-title">CH. 2 / OBSERVED BEHAVIORS</h2>
+    <span class="chapter-page">/ 002</span>
+  </header>
+  <p class="abstract"><mark>Note.</mark> Every figure below is the live subject, looping. No footage was staged.</p>
 
-  <div class="features">
-    <article class="card"><canvas class="card-demo" data-demo="skins"></canvas><span class="num">01</span><h3>YOUR CAT'S COAT</h3><p>Patch, orange, calico, siamese, void, white — or a lucky cat with its red collar and gold bell.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="eyes"></canvas><span class="num">02</span><h3>EYE FOLLOW</h3><p>Wherever your mouse goes, the cat's eyes drift after it.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="drag"></canvas><span class="num">03</span><h3>MOCHI DRAG</h3><p>Pick it up and it stretches like mochi. Cats are famously a liquid.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="hunt"></canvas><span class="num">04</span><h3>CURSOR HUNT</h3><p>Whip the mouse past it and the eyes go wide. It was definitely about to catch that.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="pet"></canvas><span class="num">05</span><h3>HEAD PETS</h3><p>Stroke its head slowly and it closes its eyes, content, floating little hearts.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="knead"></canvas><span class="num">06</span><h3>KEYBOARD KNEADING</h3><p>While you type, tiny paws knead along with you. Biscuits are being made.</p></article>
-    <article class="card card-hot"><canvas class="card-demo" data-demo="overheat"></canvas><span class="num">07</span><h3>OVERHEAT MODE</h3><p>Type in a frenzy and the cat runs hot — flushed red with steam puffing off its head.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="stretch"></canvas><span class="num">08</span><h3>STRETCH BREAKS</h3><p>Every 30/45/60 minutes the cat grows tall and asks you to stretch with it.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="pomodoro"></canvas><span class="num">09</span><h3>POMODORO TIMER</h3><p>25 minutes of focus, 5 of break, on a loop — a pixel timer floats over the cat.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="reminder"></canvas><span class="num">10</span><h3>MESSAGE REMINDER</h3><p>"Remind me in 20 minutes." The cat meows it at you, on time.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="note"></canvas><span class="num">11</span><h3>PINNED NOTE</h3><p>Pin an important note above the cat's head so it never leaves your sight.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="name"></canvas><span class="num">12</span><h3>TELL YOUR NAME</h3><p>Tell the cat your name and it greets you and uses it in reminders and breaks.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="peek"></canvas><span class="num">13</span><h3>PEEK MODE</h3><p>Watching a video? The cat tucks against the screen edge and only slides out to talk.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="fish"></canvas><span class="num">14</span><h3>FISH TIME</h3><p>Leave it alone long enough and a fish appears. The cat bats it into the air. The fish recovers. Repeat.</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="sleep"></canvas><span class="num">15</span><h3>NAP MODE</h3><p>Ignore it even longer and it gives up on the fish and falls asleep. z z z</p></article>
-    <article class="card"><canvas class="card-demo" data-demo="meow"></canvas><span class="num">16</span><h3>MEOW ON DEMAND</h3><p>Double-click the desktop cat and it meows at you. That's it. That's the feature.</p></article>
-    <article class="card card-plain"><span class="num">17</span><h3>YOURS, EVERYWHERE</h3><p>No accounts, no license keys, no telemetry. Copy one small file to every computer you own — each cat remembers its own human.</p></article>
-  </div>
-  <p class="more">MORE TINY CAT MOTIONS ARE ON THE WAY<span class="blink">…</span></p>
-</section>
-
-<section class="pricing" id="download">
-  <div class="pricing-grid">
-    <div class="pricing-copy">
-      <h2>ONE CAT.<br/>READY FOR YOUR DESKTOP.</h2>
-      <p>The whole desktop cat, free forever. One tiny download — copy it to every computer you own.</p>
-      <ul class="checks">
-        <li>✓ All 17 features included</li>
-        <li>✓ Seven coats, including lucky cat</li>
-        <li>✓ Runs on macOS, Windows &amp; Linux</li>
-        <li>✓ No install · no account · no telemetry</li>
-        <li>✓ Settings live in one tiny file it keeps at home</li>
-      </ul>
-    </div>
-    <div class="price-box">
-      <div class="price-tag"><span class="cur">$</span><span class="big">0</span><span class="cents">.00</span></div>
-      <div class="price-note">FREE · FOREVER · YOURS</div>
-      <a class="btn btn-primary btn-wide" href="downloads/bytecat.zip" download="bytecat.zip">DOWNLOAD BYTECAT ▸</a>
-      <ol class="steps">
-        <li><b>1.</b> Unzip the download.</li>
-        <li><b>2.</b> Double-click <code>BYTECAT</code>.<br/><span class="step-fine">mac: right-click → Open the first time · needs Python 3 (<code>brew install python-tk</code> if asked)</span></li>
-        <li><b>3.</b> That's it. Right-click the cat for settings.</li>
-      </ol>
-      <p class="run-fine">Prefer the bare file? <a href="downloads/bytecat.py" download>bytecat.py</a></p>
-    </div>
+  <div class="figures">
+    <figure class="fig" id="fig-skins"><div class="grid-paper"><canvas class="card-demo" data-demo="skins"></canvas></div><figcaption><mark>Figure 2-01. Coat Registry</mark><p>Ink, patch, orange, calico, siamese, void, white — or a lucky cat with its red collar and gold bell.</p></figcaption></figure>
+    <figure class="fig" id="fig-name"><div class="grid-paper"><canvas class="card-demo" data-demo="name"></canvas></div><figcaption><mark>Figure 2-02. Tell Your Name</mark><p>Tell the cat your name and it greets you and uses it in reminders and breaks.</p></figcaption></figure>
+    <figure class="fig" id="fig-eyes"><div class="grid-paper"><canvas class="card-demo" data-demo="eyes"></canvas></div><figcaption><mark>Figure 2-03. Eye Follow</mark><p>Wherever your mouse goes, the subject's eyes drift after it.</p></figcaption></figure>
+    <figure class="fig" id="fig-hunt"><div class="grid-paper"><canvas class="card-demo" data-demo="hunt"></canvas></div><figcaption><mark>Figure 2-04. Cursor Hunt</mark><p>Whip the mouse past it and the eyes go wide. It was definitely about to catch that.</p></figcaption></figure>
+    <figure class="fig" id="fig-pet"><div class="grid-paper"><canvas class="card-demo" data-demo="pet"></canvas></div><figcaption><mark>Figure 2-05. Head Pets</mark><p>Stroke its head slowly and it closes its eyes, content, floating little hearts.</p></figcaption></figure>
+    <figure class="fig" id="fig-knead"><div class="grid-paper"><canvas class="card-demo" data-demo="knead"></canvas></div><figcaption><mark>Figure 2-06. Keyboard Kneading</mark><p>While you type, tiny paws knead along with you. Biscuits are being made.</p></figcaption></figure>
+    <figure class="fig fig-hot" id="fig-overheat"><div class="grid-paper"><canvas class="card-demo" data-demo="overheat"></canvas></div><figcaption><mark>Figure 2-07. Overheat Mode</mark><p>Type in a frenzy and the subject runs hot — flushed red with steam puffing off its head.</p></figcaption></figure>
+    <figure class="fig" id="fig-drag"><div class="grid-paper"><canvas class="card-demo" data-demo="drag"></canvas></div><figcaption><mark>Figure 2-08. Mochi Drag</mark><p>Pick it up and it stretches like mochi. Cats are famously a liquid.</p></figcaption></figure>
+    <figure class="fig" id="fig-fish"><div class="grid-paper"><canvas class="card-demo" data-demo="fish"></canvas></div><figcaption><mark>Figure 2-09. Fish Time</mark><p>Leave it alone long enough and a fish appears. The subject bats it into the air. The fish recovers. Repeat.</p></figcaption></figure>
+    <figure class="fig" id="fig-sleep"><div class="grid-paper"><canvas class="card-demo" data-demo="sleep"></canvas></div><figcaption><mark>Figure 2-10. Nap Mode</mark><p>Ignore it even longer and it gives up on the fish and falls asleep. z z z</p></figcaption></figure>
+    <figure class="fig" id="fig-meow"><div class="grid-paper"><canvas class="card-demo" data-demo="meow"></canvas></div><figcaption><mark>Figure 2-11. Meow on Demand</mark><p>Double-click the desktop subject and it meows at you. That's it. That's the feature.</p></figcaption></figure>
+    <figure class="fig" id="fig-pomodoro"><div class="grid-paper"><canvas class="card-demo" data-demo="pomodoro"></canvas></div><figcaption><mark>Figure 2-12. Pomodoro Timer</mark><p>25 minutes of focus, 5 of break, on a loop — a pixel timer floats over the subject.</p></figcaption></figure>
+    <figure class="fig" id="fig-reminder"><div class="grid-paper"><canvas class="card-demo" data-demo="reminder"></canvas></div><figcaption><mark>Figure 2-13. Message Reminder</mark><p>"Remind me in 20 minutes." The subject meows it at you, on time.</p></figcaption></figure>
+    <figure class="fig" id="fig-note"><div class="grid-paper"><canvas class="card-demo" data-demo="note"></canvas></div><figcaption><mark>Figure 2-14. Pinned Note</mark><p>Pin an important note above the subject's head so it never leaves your sight.</p></figcaption></figure>
+    <figure class="fig" id="fig-stretch"><div class="grid-paper"><canvas class="card-demo" data-demo="stretch"></canvas></div><figcaption><mark>Figure 2-15. Stretch Breaks</mark><p>Every 30/45/60 minutes the subject grows tall and asks you to stretch with it.</p></figcaption></figure>
+    <figure class="fig" id="fig-peek"><div class="grid-paper"><canvas class="card-demo" data-demo="peek"></canvas></div><figcaption><mark>Figure 2-16. Peek Mode</mark><p>Watching a video? The subject tucks against the screen edge and only slides out to talk.</p></figcaption></figure>
   </div>
 </section>
 
-<footer class="footer">
-  <div class="footer-logo">BYTECAT</div>
-  <div class="footer-tag">PIXEL CAT FOR YOUR DESKTOP</div>
-  <div class="footer-meta">© 2026 BYTECAT · <a href="#top">TOP ↑</a></div>
+<section class="install" id="install">
+  <header class="chapter-bar chapter-bar-sub">
+    <h2 class="chapter-title">CH. 3 / INSTALLATION</h2>
+    <span class="chapter-page">/ 003</span>
+  </header>
+  <p class="abstract"><mark>Terms.</mark> Free. Forever. No accounts, no license keys, no telemetry. One cat per desk recommended; not enforced.</p>
+
+  <div class="install-grid">
+    <div class="install-card">
+      <div class="index-tab">MACOS — NO SECURITY WARNINGS</div>
+      <p class="install-copy">Paste this in Terminal. It builds <code>BYTECAT.app</code> in your Applications folder and launches it — no Gatekeeper popups, because the app is assembled on your own machine and never carries the browser's quarantine flag.</p>
+      <div class="cmd-row">
+        <code id="install-cmd">curl -fsSL https://ranch6.github.io/bytecat/downloads/install.sh | sh</code>
+        <button class="btn btn-copy" id="copy-btn" type="button">COPY</button>
+      </div>
+      <p class="install-fine">Needs Python 3 with Tk — the installer checks and tells you if it's missing (<code>brew install python-tk</code>). Afterwards BYTECAT lives in ~/Applications; open it from Spotlight like any app. Uninstall by deleting the app.</p>
+    </div>
+
+    <div class="install-card">
+      <div class="index-tab">WINDOWS / LINUX / MANUAL</div>
+      <p class="install-copy">One small zip: the cat, double-click launchers, and a plain-text README.</p>
+      <div class="cmd-row">
+        <a class="btn btn-primary btn-wide" href="downloads/bytecat.zip" download="bytecat.zip">DOWNLOAD BYTECAT.ZIP ▸</a>
+      </div>
+      <p class="install-fine">Unzip → double-click <code>BYTECAT</code>. Windows installs from python.org include Tk. Linux: <code>sudo apt install python3-tk</code>. Prefer the bare file? <a href="downloads/bytecat.py" download>bytecat.py</a></p>
+    </div>
+  </div>
+  <p class="figure-caption"><mark>Figure 3-1. Subject Acquisition Procedures</mark></p>
+</section>
+
+<footer class="colophon">
+  <span>BYTECAT — PIXEL CAT FOR YOUR DESKTOP</span>
+  <span>© 2026 · <a href="#top">TOP ↑</a></span>
 </footer>
 
 <script src="cat.js"></script>

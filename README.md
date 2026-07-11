@@ -36,9 +36,21 @@ BYTECAT.bat       # Windows double-click launcher
 README.txt        # instructions
 ```
 
-Copy the zip to any computer with Python 3 + Tk and double-click the launcher
-(macOS first launch: right-click → Open). Missing Tk? macOS:
-`brew install python-tk` · Linux: `sudo apt install python3-tk`.
+**macOS one-liner (no Gatekeeper warnings):**
+
+```sh
+curl -fsSL https://ranch6.github.io/bytecat/downloads/install.sh | sh
+```
+
+This builds `BYTECAT.app` in `~/Applications` (icon and all) and launches it.
+Because the bundle is assembled locally by the user's own shell, it never
+carries the `com.apple.quarantine` flag, so Gatekeeper shows no warnings —
+the same technique Homebrew uses. (Comnyang avoids warnings by paying for an
+Apple Developer ID and notarizing; this is the free equivalent.)
+
+Otherwise: copy the zip to any computer with Python 3 + Tk and double-click
+the launcher (macOS first launch of a *downloaded* file: right-click → Open).
+Missing Tk? macOS: `brew install python-tk` · Linux: `sudo apt install python3-tk`.
 
 Features: seven coats (patch/orange/calico/siamese/void/white/**lucky cat**
 with red collar and bell), eased eye-follow anywhere on screen, cursor hunt,

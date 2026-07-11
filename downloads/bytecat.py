@@ -82,6 +82,7 @@ PINK, BLUSH = "#e9a0ab", "#f2b8bc"
 FISH_BLUE, FISH_DARK = "#7d9fc7", "#4a6b96"
 
 SKINS = {
+    "ink":     {"B": "#fdfcf8", "G": "#dcd8cc", "S": "#fdfcf8", "#": "#141312"},
     "patch":   {"B": "#f6f1e5", "G": "#8d8a86", "S": "#f6f1e5", "#": "#4a4440"},
     "orange":  {"B": "#f6ead2", "G": "#e0a45c", "S": "#e0a45c", "#": "#4a4034"},
     "calico":  {"B": "#f7f2e8", "G": "#e0a45c", "S": "#57504e", "#": "#4a4440"},

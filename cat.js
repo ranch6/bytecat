@@ -47,6 +47,7 @@ const FISH_BASE_ROW = 21.0;          // fish hover height while swimming
 const SWIPE_MS = 620;                // full swipe: windup, strike, retract
 
 const SKINS = {
+  ink:     { B: "#fdfcf8", G: "#dcd8cc", S: "#fdfcf8", "#": "#141312", label: "ink" },
   patch:   { B: "#f6f1e5", G: "#8d8a86", S: "#f6f1e5", "#": "#4a4440", label: "patch" },
   orange:  { B: "#f6ead2", G: "#e0a45c", S: "#e0a45c", "#": "#4a4034", label: "orange" },
   calico:  { B: "#f7f2e8", G: "#e0a45c", S: "#57504e", "#": "#4a4440", label: "calico" },
@@ -67,6 +68,7 @@ class PixelCat {
     canvas.height = (ROWS + PAD) * this.px;
     this.skin = opts.skin || "patch";
     this.demo = opts.demo || null;
+    this.crosshair = !!opts.crosshair;   // dashed index lines tracking the pointer
 
     this.state = "idle";   // idle|pet|knead|alert|drag|sleep|overheat|stretch|meow
     this.stateUntil = 0;
@@ -162,6 +164,10 @@ class PixelCat {
 
   // -------------------------------------------------------------- loop ----
   _loop(now) {
+    if (this.paused) {                     // offscreen: idle cheaply
+      requestAnimationFrame((t) => this._loop(t));
+      return;
+    }
     if (this.demo) this._demoTick(now);
     else this._liveTick(now);
 
@@ -347,6 +353,8 @@ class PixelCat {
     cx.clearRect(0, 0, this.cv.width, this.cv.height);
     cx.imageSmoothingEnabled = false;
 
+    if (this.crosshair) this._drawCrosshair();
+
     // breathing: a slow, subtle vertical swell
     const breathe = 1 + Math.sin(now / 1100) * 0.011;
     const shiver = this.state === "overheat" ? ((Math.floor(now / 60) % 2) ? 1 : -1) : 0;
@@ -385,6 +393,23 @@ class PixelCat {
     this._drawSwipe(now, pal, xof, yof);
     this._drawParticles();
     this._drawTexts();
+  }
+
+  _drawCrosshair() {
+    // dashed index lines through the tracked point (fish beats pointer)
+    const { cx } = this;
+    let tx = this.mouse.x, ty = this.mouse.y;
+    if (this.fish) { tx = this.fish.x * this.px; ty = (this.fish.y + PAD) * this.px; }
+    if (tx < -50 || tx > this.cv.width + 50 || ty < -50 || ty > this.cv.height + 50) return;
+    tx = Math.max(0, Math.min(this.cv.width, tx));
+    ty = Math.max(0, Math.min(this.cv.height, ty));
+    cx.save();
+    cx.strokeStyle = "#9a968a";
+    cx.lineWidth = 1;
+    cx.setLineDash([4, 4]);
+    cx.beginPath(); cx.moveTo(tx, 0); cx.lineTo(tx, this.cv.height); cx.stroke();
+    cx.beginPath(); cx.moveTo(0, ty); cx.lineTo(this.cv.width, ty); cx.stroke();
+    cx.restore();
   }
 
   _drawTail(now, pal, xof, yof) {
