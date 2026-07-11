@@ -8,16 +8,17 @@ to typing anywhere on your system: keyboard kneading and overheat mode.
 PRIVACY: it only counts keystrokes to animate paws — it never records WHICH
 keys you press, stores nothing, and sends nothing.
 
-Run:            python3 bytecat.py      (or double-click the launcher)
+Run:            python3 bytecat.py      (or install via the macOS one-liner)
 Move it:        drag the cat anywhere
 Pet it:         glide the mouse slowly over its head
 Meow:           double-click it
-Everything else: right-click it — coat (incl. lucky cat), your name,
-                 pomodoro, reminders, pinned note, stretch breaks, peek, quit.
+Everything else: right-click it — coat (12 to choose from, incl. tabby,
+                 chonk, cloud, munchkin, lucky), your name, pomodoro,
+                 reminders, pinned note, stretch breaks, peek mode, quit.
 
-Leave it alone for a bit and a little fish comes out to play.
-Settings are saved to ~/.bytecat.json so your cat remembers you.
-Works on macOS, Windows, and Linux (transparency is best on macOS/Windows).
+Leave it alone and a little fish comes out to play — the cat stands up on
+its hind legs and bats it around. Sometimes the fish just drops by on its
+own. Settings are saved to ~/.bytecat.json so your cat remembers you.
 """
 
 import json
@@ -29,67 +30,166 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import simpledialog
 
-# ---------------------------------------------------------------- sprite ----
+# ---------------------------------------------------------------- sprites ---
 # legend: . none | # outline | B base | G patch | S spot | P inner ear | R blush
-SPRITE = [
-    "..........##...........##.........",
-    "..........##...........##.........",
-    ".........#P#...........#P#........",
-    ".........#PP#.#######.#PP#........",
-    ".........#PPB#BBBBGGG#GPP#........",
-    "........#BBBBBBBBBGGGGGGGG#.......",
-    "........#BBBBBBBBGGGGGGGGG#.......",
-    ".......###BBBBBBBBGGGGGGG###......",
-    "..........#BBBBBBBGGGGGG#.........",
-    "..........#BBBBBBBBGGGGG#.........",
-    "..........#BBBBBBBBBGGGG#.........",
-    "..........#BBBBBBBBBBBBB#.........",
-    "...........#RBBBBBBBBBR#..........",
-    "...........#BBBBBBBBBBB#..........",
-    "............#BBBBBBBBB#...........",
-    ".............#GGBBBBB#............",
-    "............#GGGBBBBBB#...........",
-    "............#GGGGBBBBB#...........",
-    "............#GGGBBBBBB#...........",
-    "............#GGGBBBBBB#...........",
-    "...........##BBB#BBB#BB#..........",
-    "...........##BBB#BBB#BB#..........",
-    "..........#B#BBB#BBB#BBB#.........",
-    "..........#B#BBB#BBB#SSS#.........",
-    "..........#B#BBB#BBB#SSS#.........",
-    ".........#BB#BBB#BBB#SSSS#........",
-    ".........#BB#BBB#BBB#SSSS#........",
-    "..........#B#BBB#BBB#BBB#.........",
-    "...........##BBB#BBBBB##..........",
-    ".............#########............",
-]
-COLS, ROWS = 34, 30
+SPRITES = {
+    "sit_std": [
+        "..........##...........##.........",
+        "..........##...........##.........",
+        ".........#P#...........#P#........",
+        ".........#PP#.#######.#PP#........",
+        ".........#PPB#BBBBGGG#GPP#........",
+        "........#BBBBBBBBBGGGGGGGG#.......",
+        "........#BBBBBBBBGGGGGGGGG#.......",
+        ".......###BBBBBBBBGGGGGGG###......",
+        "..........#BBBBBBBGGGGGG#.........",
+        "..........#BBBBBBBBGGGGG#.........",
+        "..........#BBBBBBBBBGGGG#.........",
+        "..........#BBBBBBBBBBBBB#.........",
+        "...........#RBBBBBBBBBR#..........",
+        "...........#BBBBBBBBBBB#..........",
+        "............#BBBBBBBBB#...........",
+        ".............#GGBBBBB#............",
+        "............#GGGBBBBBB#...........",
+        "............#GGGGBBBBB#...........",
+        "............#GGGBBBBBB#...........",
+        "............#GGGBBBBBB#...........",
+        "...........##BBB#BBB#BB#..........",
+        "...........##BBB#BBB#BB#..........",
+        "..........#B#BBB#BBB#BBB#.........",
+        "..........#B#BBB#BBB#SSS#.........",
+        "..........#B#BBB#BBB#SSS#.........",
+        ".........#BB#BBB#BBB#SSSS#........",
+        ".........#BB#BBB#BBB#SSSS#........",
+        "..........#B#BBB#BBB#BBB#.........",
+        "...........##BBB#BBBBB##..........",
+        ".............#########............",
+    ],
+    "sit_fat": [
+        "..........##...........##.........",
+        "..........##...........##.........",
+        ".........#P#...........#P#........",
+        ".........#PP#.#######.#PP#........",
+        ".........#PPB#BBBBGGG#GPP#........",
+        "........#BBBBBBBBBGGGGGGGG#.......",
+        "........#BBBBBBBBGGGGGGGGG#.......",
+        ".......###BBBBBBBBGGGGGGG###......",
+        "..........#BBBBBBBGGGGGG#.........",
+        "..........#BBBBBBBBGGGGG#.........",
+        "..........#BBBBBBBBBGGGG#.........",
+        "..........#BBBBBBBBBBBBB#.........",
+        "...........#RBBBBBBBBBR#..........",
+        "...........#BBBBBBBBBBB#..........",
+        "............#BBBBBBBBB#...........",
+        "............#GGBBBBBBB#...........",
+        "...........#GGGBBBBBBBB#..........",
+        "..........#GGGGGBBBBBBBB#.........",
+        "..........#GGGGBBBBBBBBB#.........",
+        "..........#GGGGBBBBBBBBB#.........",
+        ".........#BB#BBB#BBB#BBBB#........",
+        ".........#BB#BBB#BBB#BBBB#........",
+        "........#BBB#BBB#BBB#BBBBB#.......",
+        "........#BBB#BBB#BBB#BBSSS#.......",
+        "........#BBB#BBB#BBB#BSSSS#.......",
+        ".......#BBBB#BBB#BBB#BSSSSS#......",
+        ".......#BBBB#BBB#BBB#BBSSSB#......",
+        "........#BBB#BBB#BBB#BBBBB#.......",
+        ".........###BBBB#BBBBBB###........",
+        "............###########...........",
+    ],
+    "sit_short": [
+        "..........##...........##.........",
+        "..........##...........##.........",
+        ".........#P#...........#P#........",
+        ".........#PP#.#######.#PP#........",
+        ".........#PPB#BBBBGGG#GPP#........",
+        "........#BBBBBBBBBGGGGGGGG#.......",
+        "........#BBBBBBBBGGGGGGGGG#.......",
+        ".......###BBBBBBBBGGGGGGG###......",
+        "..........#BBBBBBBGGGGGG#.........",
+        "..........#BBBBBBBBGGGGG#.........",
+        "..........#BBBBBBBBBGGGG#.........",
+        "..........#BBBBBBBBBBBBB#.........",
+        "...........#RBBBBBBBBBR#..........",
+        "...........#BBBBBBBBBBB#..........",
+        "............#BBBBBBBBB#...........",
+        "............#GGGBBBBBB#...........",
+        "............#GGGBBBBBB#...........",
+        "............#GGGGBBBBB#...........",
+        "...........#GGGGBBBBBBB#..........",
+        "...........##GGG#BBB#BB#..........",
+        "..........#B#BBB#BBB#BSS#.........",
+        "..........#B#BBB#BBB#SSS#.........",
+        ".........#BB#BBB#BBB#SSSS#........",
+        ".........#BB#BBB#BBB#SSSS#........",
+        ".........#BB#BBB#BBB#BSSB#........",
+        "..........###BBB#BBB#BB##.........",
+        "............##BB#BBBB##...........",
+        "..............#######.............",
+    ],
+    "stand": [
+        "..........##...........##.........",
+        "..........##...........##.........",
+        ".........#P#...........#P#........",
+        ".........#PP#.#######.#PP#........",
+        ".........#PPB#BBBBGGG#GPP#........",
+        "........#BBBBBBBBBGGGGGGGG#.......",
+        "........#BBBBBBBBGGGGGGGGG#.......",
+        ".......###BBBBBBBBGGGGGGG###......",
+        "..........#BBBBBBBGGGGGG#.........",
+        "..........#BBBBBBBBGGGGG#.........",
+        "..........#BBBBBBBBBGGGG#.........",
+        "..........#BBBBBBBBBBBBB#.........",
+        "...........#RBBBBBBBBBR#..........",
+        "...........#BBBBBBBBBBB#..........",
+        "............##BBBBBBB##...........",
+        "..............#BBBBB#.............",
+        ".............#BBBBBBB#............",
+        ".............#BBBBBBB#............",
+        ".............#BBBBBBG#............",
+        ".............#BBBBBGG#............",
+        ".............#BBBBGGG#............",
+        "............#BBBBBBGGG#...........",
+        "............#BBBBBBBGG#...........",
+        "...........#BBBBBBBBBBB#..........",
+        "...........#SSSSBBBBBBB#..........",
+        "...........#SSSSBBBBBBB#..........",
+        "............#SSSBBBBBB#...........",
+        ".............#BBB#BBB#............",
+        "............#BBBB#BBBB#...........",
+        "............###########...........",
+    ],
+}
+COLS, MAX_ROWS = 34, 30
 PX = 6
 OFF_X = 46
 TOP_PAD = 56
 W = 300
-H = TOP_PAD + ROWS * PX + 8
+H = TOP_PAD + MAX_ROWS * PX + 8
 
 EYE_L, EYE_R = (12.9, 7.8), (19.9, 7.8)      # (col, row)
 NOSE = (16.4, 11.0)
 HEAD = {"c0": 8, "c1": 26, "r0": 0, "r1": 14}
-SHOULDER = (12.4, 20.0)
-FISH_BASE_ROW = 21.0
-SWIPE_S = 0.62               # full swipe: windup, strike, retract (seconds)
+ARM_L, ARM_R = (13.6, 16.6), (20.4, 16.6)    # standing shoulders (col, row)
+FISH_PLAY_ROW = 17.0
 CONFIG = Path.home() / ".bytecat.json"
 
 PINK, BLUSH = "#e9a0ab", "#f2b8bc"
-FISH_BLUE, FISH_DARK = "#7d9fc7", "#4a6b96"
+FISH_BLUE, FISH_DARK, DROP_BLUE = "#7d9fc7", "#4a6b96", "#a8c4e0"
 
 SKINS = {
-    "ink":     {"B": "#fdfcf8", "G": "#dcd8cc", "S": "#fdfcf8", "#": "#141312"},
-    "patch":   {"B": "#f6f1e5", "G": "#8d8a86", "S": "#f6f1e5", "#": "#4a4440"},
-    "orange":  {"B": "#f6ead2", "G": "#e0a45c", "S": "#e0a45c", "#": "#4a4034"},
-    "calico":  {"B": "#f7f2e8", "G": "#e0a45c", "S": "#57504e", "#": "#4a4440"},
-    "siamese": {"B": "#efe4cd", "G": "#6b5646", "S": "#efe4cd", "#": "#453a30"},
-    "void":    {"B": "#3b3740", "G": "#322e38", "S": "#322e38", "#": "#221f28"},
-    "white":   {"B": "#f9f6ee", "G": "#efe9db", "S": "#f9f6ee", "#": "#4a4440"},
-    "lucky":   {"B": "#f9f6ee", "G": "#e0a45c", "S": "#57504e", "#": "#4a4440", "collar": True},
+    "ink":      {"B": "#fdfcf8", "G": "#dcd8cc", "S": "#fdfcf8", "#": "#141312"},
+    "patch":    {"B": "#f6f1e5", "G": "#8d8a86", "S": "#f6f1e5", "#": "#4a4440"},
+    "tabby":    {"B": "#f4efe2", "G": "#a89f92", "S": "#a89f92", "#": "#4a4440", "stripes": "#6e6558"},
+    "orange":   {"B": "#f6ead2", "G": "#e0a45c", "S": "#e0a45c", "#": "#4a4034"},
+    "chonk":    {"B": "#f6e7cd", "G": "#e0a45c", "S": "#e0a45c", "#": "#4a4034", "stripes": "#c47f3a", "body": "sit_fat"},
+    "calico":   {"B": "#f7f2e8", "G": "#e0a45c", "S": "#57504e", "#": "#4a4440"},
+    "siamese":  {"B": "#efe4cd", "G": "#6b5646", "S": "#efe4cd", "#": "#453a30"},
+    "cloud":    {"B": "#fbfaf5", "G": "#f1eee6", "S": "#fbfaf5", "#": "#4a4440", "fluffy": True},
+    "void":     {"B": "#3b3740", "G": "#322e38", "S": "#322e38", "#": "#221f28"},
+    "white":    {"B": "#f9f6ee", "G": "#efe9db", "S": "#f9f6ee", "#": "#4a4440"},
+    "munchkin": {"B": "#f6e9d0", "G": "#e8a95e", "S": "#e8a95e", "#": "#4a4034", "stripes": "#c8823c", "body": "sit_short"},
+    "lucky":    {"B": "#f9f6ee", "G": "#e0a45c", "S": "#57504e", "#": "#4a4440", "collar": True},
 }
 
 
@@ -108,11 +208,11 @@ class ByteCat:
         if self.skin not in SKINS:
             self.skin = "patch"
         self.name = cfg.get("name", "")
-        self.stretch_every = cfg.get("stretch_every", 45)   # minutes; 0 = off
+        self.stretch_every = cfg.get("stretch_every", 45)
         self.peek = cfg.get("peek", False)
         self.pinned = cfg.get("pinned", "")
 
-        self.state = "idle"      # idle|pet|sleep|meow|alert|knead|overheat|stretch
+        self.state = "idle"
         self.state_until = 0.0
         self.blink_until = 0.0
         self.next_blink = time.time() + random.uniform(2, 5)
@@ -131,13 +231,14 @@ class ByteCat:
         self.key_times = []
         self.gaze = [0.0, 0.0]
         self.gaze_target = [0.0, 0.0]
-        self.tail_up = 0.0           # 0 = wrapped on the ground, 1 = raised
+        self.tail_up = 0.0
 
-        # fish toy: dict(x, y in cells, vx, vy, dir, phase, spin, born) or None
+        # fish toy + standing play pose
         self.fish = None
         self.fish_cooldown_until = 0.0
-        self.swipe_start = 0.0
-        self.swipe_hit = False
+        self.pose = 0.0                    # 0 sitting … 1 standing
+        self.bat_cooldown_until = 0.0
+        self.paws = {"L": [0.0, 0.0], "R": [0.0, 0.0]}   # px coords
 
         root.overrideredirect(True)
         try:
@@ -200,8 +301,8 @@ class ByteCat:
                 return key
             except tk.TclError:
                 pass
-        root.config(bg="#0c0b0a")
-        return "#0c0b0a"
+        root.config(bg="#f2efe8")
+        return "#f2efe8"
 
     # --------------------------------------------------- global listeners --
     def _start_global_listeners(self):
@@ -212,7 +313,7 @@ class ByteCat:
         except ImportError:
             return
         try:
-            def on_press(_key):          # _key is deliberately ignored
+            def on_press(_key):
                 self.key_count += 1
 
             keyboard.Listener(on_press=on_press, daemon=True).start()
@@ -258,7 +359,13 @@ class ByteCat:
         self.bubble = {"text": text, "until": time.time() + secs}
 
     def _spawn(self, kind, x, y):
-        self.particles.append({"kind": kind, "x": x, "y": y, "life": 1.0})
+        p = {"kind": kind, "x": x, "y": y, "life": 1.0, "vx": 0.0}
+        if kind == "drop":
+            p["vy"] = 2.5 + random.random() * 2
+            p["vx"] = (random.random() - 0.5) * 6
+        else:
+            p["vy"] = -0.9
+        self.particles.append(p)
 
     def _schedule_stretch(self):
         if self.stretch_every:
@@ -355,7 +462,6 @@ class ByteCat:
         now = time.time()
         hey = f", {self.name}" if self.name else ""
 
-        # pointer watching (global) + cursor-hunt speed
         px_, py_ = self.root.winfo_pointerxy()
         dist = math.hypot(px_ - self.last_pointer[0], py_ - self.last_pointer[1])
         self.pointer_speed = self.pointer_speed * 0.5 + dist * 0.5
@@ -367,7 +473,6 @@ class ByteCat:
         if near and self.pointer_speed > 90 and self.state in ("idle", "knead"):
             self.state, self.state_until = "alert", now + 0.9
 
-        # keyboard kneading + overheat
         new_keys = self.key_count - self._keys_seen
         self._keys_seen = self.key_count
         if new_keys:
@@ -383,19 +488,20 @@ class ByteCat:
         if self.state == "overheat" and random.random() < 0.5:
             self._spawn("steam", OFF_X + random.randint(12, 22) * PX, TOP_PAD - 6)
 
-        # bored -> fish time; very bored -> sleep
+        # bored -> long fish session; sometimes the fish just drops by
         idle_for = now - self.last_pointer_move
-        if (self.fish is None and self.state == "idle" and
-                25 < idle_for < 150 and now > self.fish_cooldown_until):
-            self._spawn_fish(now)
-        if (self.fish is not None and now - self.fish["born"] > 16 and
+        if self.fish is None and self.state == "idle" and now > self.fish_cooldown_until:
+            if 25 < idle_for < 150:
+                self._spawn_fish(now, 18)
+            elif idle_for > 6 and random.random() < 0.0011:   # ~ every few minutes
+                self._spawn_fish(now, 9)
+        if (self.fish is not None and now - self.fish["born"] > self.fish["visit_s"] and
                 self.fish["phase"] == "swim"):
             self.fish = None
             self.fish_cooldown_until = now + 40
         if self.fish is not None:
             self._fish_tick(now)
 
-        # timers: pomodoro / reminders / stretch breaks
         if self.pomo and now > self.pomo["until"]:
             if self.pomo["phase"] == "focus":
                 self.pomo = {"phase": "break", "until": now + 5 * 60}
@@ -415,7 +521,6 @@ class ByteCat:
             self._say(f"stretch with me{hey}!", 8)
             self._meow()
 
-        # state expiry, napping, blinking
         self.pet_heat = max(0.0, self.pet_heat - 0.4)
         if self.state not in ("idle", "sleep") and now > self.state_until:
             self.state = "idle"
@@ -429,7 +534,7 @@ class ByteCat:
         if self.bubble and now > self.bubble["until"]:
             self.bubble = None
 
-        # gaze: fish beats pointer; eased so the eyes feel alive
+        # gaze: fish beats pointer
         if self.fish is not None:
             self._gaze_at_local(OFF_X + self.fish["x"] * PX, TOP_PAD + self.fish["y"] * PX)
         else:
@@ -439,9 +544,9 @@ class ByteCat:
                                 max(-0.8, min(1.0, (py_ - cy) / 220))]
         self.gaze[0] += (self.gaze_target[0] - self.gaze[0]) * 0.35
         self.gaze[1] += (self.gaze_target[1] - self.gaze[1]) * 0.35
-        # tail rises when engaged, settles when calm
         engaged = self.fish is not None or self.state in ("alert", "overheat", "stretch")
         self.tail_up += ((1.0 if engaged else 0.0) - self.tail_up) * 0.25
+        self.pose += ((1.0 if self.fish is not None else 0.0) - self.pose) * 0.3
 
         self._apply_peek(now)
         self._draw(now)
@@ -453,41 +558,76 @@ class ByteCat:
                             max(-0.8, min(1.0, (y - cy) / 95))]
 
     # ------------------------------------------------------------- fish ----
-    def _spawn_fish(self, now):
-        self.fish = {"x": -3.0, "y": FISH_BASE_ROW, "vx": 0.0, "vy": 0.0,
-                     "dir": 1, "phase": "swim", "spin": 0, "born": now}
+    def _spawn_fish(self, now, visit_s):
+        self.fish = {"x": -3.0, "y": FISH_PLAY_ROW, "vx": 0.0, "vy": 0.0,
+                     "dir": 1, "phase": "swim", "spin": 0, "born": now,
+                     "visit_s": visit_s}
+        self.paws["L"] = [OFF_X + ARM_L[0] * PX, TOP_PAD + ARM_L[1] * PX]
+        self.paws["R"] = [OFF_X + ARM_R[0] * PX, TOP_PAD + ARM_R[1] * PX]
 
     def _fish_tick(self, now):
         f = self.fish
         if f["phase"] == "swim":
-            f["x"] += f["dir"] * 0.3             # cells per 80ms tick
-            f["y"] = FISH_BASE_ROW + math.sin(now * 2.4) * 1.0
-            if f["x"] > 9.8:
+            f["x"] += f["dir"] * 0.35
+            f["y"] = FISH_PLAY_ROW + math.sin(now * 2.4) * 1.2
+            if f["x"] > 31:
                 f["dir"] = -1
-            if f["x"] < 0.6 and f["dir"] == -1:
+            if f["x"] < 2 and f["dir"] == -1:
                 f["dir"] = 1
-            if f["x"] > 7.4 and f["dir"] == 1 and now - self.swipe_start > 2.6:
-                self.swipe_start = now
-                self.swipe_hit = False
-            st = now - self.swipe_start
-            if not self.swipe_hit and SWIPE_S * 0.42 < st < SWIPE_S * 0.56 and f["x"] > 5.8:
-                self.swipe_hit = True
-                f["phase"] = "toss"
-                f["vx"] = -(1.1 + random.random() * 0.6)
-                f["vy"] = -(2.4 + random.random() * 0.9)
-                f["spin"] = 0
-        else:                                     # toss: gravity + tumble
+        else:
             f["vy"] += 0.85
             f["x"] += f["vx"]
             f["y"] += f["vy"]
             f["spin"] += 1
-            if f["y"] >= FISH_BASE_ROW and f["vy"] > 0:
+            if f["y"] >= FISH_PLAY_ROW and f["vy"] > 0:
                 f["phase"] = "swim"
-                f["y"] = FISH_BASE_ROW
+                f["y"] = FISH_PLAY_ROW
                 f["spin"] = 0
-                f["dir"] = 1 if f["x"] < 1.5 else -1
+                f["dir"] = -1 if f["x"] > 17 else 1
             if f["x"] < -4:
                 f.update(x=-3.0, phase="swim", spin=0, dir=1)
+            if f["x"] > 37:
+                f.update(x=36.0, phase="swim", spin=0, dir=-1)
+
+        # arms chase the fish: near arm reaches, far arm supports below
+        fpx, fpy = OFF_X + f["x"] * PX, TOP_PAD + f["y"] * PX
+        left_near = f["x"] < 17
+        near, far = ("L", "R") if left_near else ("R", "L")
+        near_sh = ARM_L if left_near else ARM_R
+        far_sh = ARM_R if left_near else ARM_L
+        if f["phase"] == "toss" or f["y"] < 11:
+            near_t = (fpx, fpy + PX)
+            far_t = (OFF_X + (far_sh[0] + (-0.6 if left_near else 0.6)) * PX,
+                     TOP_PAD + (far_sh[1] + 3) * PX)
+        else:
+            near_t = (fpx + (1.6 if left_near else -1.6) * PX, fpy + 0.4 * PX)
+            far_t = (fpx + (3.6 if left_near else -3.6) * PX, fpy + 2.4 * PX)
+
+        def clamp_reach(sh, t):
+            sx, sy = OFF_X + sh[0] * PX, TOP_PAD + sh[1] * PX
+            mx = 9.5 * PX
+            d = math.hypot(t[0] - sx, t[1] - sy)
+            if d <= mx:
+                return t
+            return (sx + (t[0] - sx) / d * mx, sy + (t[1] - sy) / d * mx)
+
+        near_t = clamp_reach(near_sh, near_t)
+        far_t = clamp_reach(far_sh, far_t)
+        self.paws[near][0] += (near_t[0] - self.paws[near][0]) * 0.6
+        self.paws[near][1] += (near_t[1] - self.paws[near][1]) * 0.6
+        self.paws[far][0] += (far_t[0] - self.paws[far][0]) * 0.45
+        self.paws[far][1] += (far_t[1] - self.paws[far][1]) * 0.45
+
+        pn = self.paws[near]
+        if (f["phase"] == "swim" and now > self.bat_cooldown_until and
+                math.hypot(pn[0] - fpx, pn[1] - fpy) < 1.6 * PX):
+            f["phase"] = "toss"
+            f["vx"] = (1 if f["x"] > 17 else -1) * (0.6 + random.random() * 0.5)
+            f["vy"] = -(2.4 + random.random() * 0.8)
+            f["spin"] = 0
+            self.bat_cooldown_until = now + 1.4
+            for _ in range(3):
+                self._spawn("drop", fpx, fpy)
 
     def _apply_peek(self, _now):
         if not self.peek or self.dragging:
@@ -500,32 +640,41 @@ class ByteCat:
             self.root.geometry(f"+{x + (want_x - x) // 3}+{self.root.winfo_y()}")
 
     # -------------------------------------------------------------- draw ---
+    def _grid(self):
+        if self.pose >= 0.5:
+            return SPRITES["stand"]
+        return SPRITES[SKINS[self.skin].get("body", "sit_std")]
+
     def _draw(self, now):
         cv = self.canvas
         cv.delete("all")
         pal = SKINS[self.skin]
+        grid = self._grid()
+        rows = len(grid)
+        standing = self.pose >= 0.5
 
         breathe = 1 + math.sin(now * 0.9) * 0.011
         shiver = (1 if int(now * 16) % 2 else -1) if self.state == "overheat" else 0
+        hop = math.sin(min(1.0, abs(self.pose - 0.5) * 2) * math.pi) * -3
         sy = breathe
         if self.dragging:
             sy += 0.24
         elif self.state == "stretch":
             sy += 0.33 * (0.5 + 0.5 * abs(math.sin(now * 2)))
 
-        bottom = TOP_PAD + ROWS * PX
-        yof = lambda r: bottom - (ROWS - r) * PX * sy
+        bottom = TOP_PAD + MAX_ROWS * PX + hop
+        yof = lambda r: bottom - (rows - r) * PX * sy
         xof = lambda c: OFF_X + c * PX + shiver
         ph = PX * sy + 0.6
 
-        if self.tail_up >= 0.5:
-            self._draw_tail(now, pal, xof, yof)      # raised: behind the body
+        if standing or self.tail_up >= 0.5:
+            self._draw_tail(now, pal, xof, yof, rows, standing)
 
         knead = None
-        if self.state == "knead":
+        if self.state == "knead" and not standing:
             knead = (13, 15) if int(now * 6) % 2 == 0 else (17, 19)
 
-        for r, row in enumerate(SPRITE):
+        for r, row in enumerate(grid):
             for c, ch in enumerate(row):
                 if ch == ".":
                     continue
@@ -542,7 +691,23 @@ class ByteCat:
                     y -= PX * 0.8
                 cv.create_rectangle(xof(c), y, xof(c) + PX, y + ph, fill=color, width=0)
 
-        if pal.get("collar"):
+        # tabby stripes: forehead + flanks
+        if pal.get("stripes"):
+            st = pal["stripes"]
+            for c in (15, 17, 19):
+                for r in (3, 4):
+                    if grid[r][c] in "BG":
+                        cv.create_rectangle(xof(c), yof(r), xof(c) + PX, yof(r) + ph,
+                                            fill=st, width=0)
+            for r in (21, 23, 25):
+                if r >= rows:
+                    continue
+                for c in range(COLS):
+                    if grid[r][c] in "BGS" and (c <= 12 or c >= 21):
+                        cv.create_rectangle(xof(c), yof(r), xof(c) + PX, yof(r) + ph,
+                                            fill=st, width=0)
+
+        if pal.get("collar") and not standing:
             cv.create_rectangle(xof(12.6), yof(14.8), xof(12.6) + PX * 9.0,
                                 yof(14.8) + PX * 1.1, fill="#c8433e", width=0)
             cv.create_rectangle(xof(16.3), yof(15.7), xof(16.3) + PX * 1.6,
@@ -550,42 +715,44 @@ class ByteCat:
             cv.create_rectangle(xof(16.8), yof(16.3), xof(16.8) + PX * 0.6,
                                 yof(16.3) + PX * 0.6, fill=pal["#"], width=0)
 
-        self._draw_face(now, pal, xof, yof)
-        if self.tail_up < 0.5:
-            self._draw_tail(now, pal, xof, yof)      # wrapped: in front, on the ground
+        self._draw_face(now, pal, xof, yof, standing)
+        if not standing and self.tail_up < 0.5:
+            self._draw_tail(now, pal, xof, yof, rows, False)
+        if standing and self.fish is not None:
+            self._draw_arms(pal)
         if self.fish is not None:
             self._draw_fish(now)
-            self._draw_swipe(now, pal, xof, yof)
         self._draw_particles()
         self._draw_texts(now)
 
-    def _draw_tail(self, now, pal, xof, yof):
-        """Two natural poses, blended: wrapped along the ground when calm,
-        raised and flicking when engaged. The wave travels toward the tip."""
+    def _draw_tail(self, now, pal, xof, yof, rows, standing):
         cv = self.canvas
-        m = self.tail_up
+        m = 1.0 if standing else self.tail_up
         asleep = self.state == "sleep"
         excited = self.fish is not None
         speed = 2.6 if asleep else 0.26 if excited else 0.9
         amp = 0.05 if asleep else 0.16 if excited else 0.08
 
-        root_c, root_r = 25.4 - m * 1.6, 27.9 - m * 3.6
-        ang = (-3.05) * (1 - m) + 0.5 * m
-        d_ang = (-0.04) * (1 - m) + 0.15 * m
+        root_c = 21.5 if standing else 25.4 - m * 1.6
+        root_r = rows - (4.5 if standing else 2.1 + m * 3.6)
+        ang = 0.55 if standing else (-3.05) * (1 - m) + 0.5 * m
+        d_ang = 0.15 if standing else (-0.04) * (1 - m) + 0.15 * m
 
         x, y = xof(root_c), yof(root_r)
-        w, segs = PX * 1.6, 10
+        w = PX * (2.2 if pal.get("fluffy") else 1.6)
+        segs = 10
         for i in range(segs):
             wave = math.sin(now / speed - i * 0.55) * amp * (i / segs + 0.3)
             ang += d_ang + wave
             x += math.cos(ang) * PX * 1.05
             y -= math.sin(ang) * PX * 1.05
+            col = pal["stripes"] if (pal.get("stripes") and i % 3 == 2) else pal["G"]
             cv.create_rectangle(x - w / 2 - 1, y - w / 2 - 1, x + w / 2 + 1, y + w / 2 + 1,
                                 fill=pal["#"], width=0)
             cv.create_rectangle(x - w / 2, y - w / 2, x + w / 2, y + w / 2,
-                                fill=pal["G"], width=0)
+                                fill=col, width=0)
 
-    def _draw_face(self, now, pal, xof, yof):
+    def _draw_face(self, now, pal, xof, yof, standing):
         cv = self.canvas
         closed = now < self.blink_until or self.state in ("sleep", "pet")
         dark = "#e8e4da" if self.skin == "void" else pal["#"]
@@ -609,22 +776,38 @@ class ByteCat:
             cv.create_rectangle(x + gx + PX * 0.25, y + gy, x + gx + w - PX * 0.25, y + gy + h,
                                 fill=dark, width=0)
 
-        # nose + flat blank mouth
         cv.create_rectangle(xof(NOSE[0]), yof(NOSE[1]), xof(NOSE[0]) + PX * 1.2,
                             yof(NOSE[1]) + PX * 0.8, fill="#c98a80", width=0)
-        if self.state in ("meow", "overheat"):
+        happy_open = standing and int(now / 2.6) % 3 == 0
+        if self.state in ("meow", "overheat") or happy_open:
             cv.create_rectangle(xof(16.2), yof(12.2), xof(16.2) + PX * 1.6,
                                 yof(12.2) + PX * 1.2, fill=dark, width=0)
         else:
             cv.create_rectangle(xof(16.0), yof(12.4), xof(16.0) + PX * 2.2,
                                 yof(12.4) + PX * 0.4, fill=dark, width=0)
-        # whiskers
         for wx_, wy_ in ((25.4, 9.8), (25.1, 11.6), (6.0, 9.8), (6.3, 11.6)):
             cv.create_rectangle(xof(wx_), yof(wy_), xof(wx_) + PX * 2.6,
                                 yof(wy_) + PX * 0.35, fill=dark, width=0)
         if self.state == "meow":
             cv.create_text(xof(27), yof(3), text="meow!", anchor="w",
-                           font=("Courier", 13, "bold"), fill="#e5484d")
+                           font=("Courier", 13, "bold"), fill="#c8433e")
+
+    def _draw_arms(self, pal):
+        cv = self.canvas
+        for side, sh in (("L", ARM_L), ("R", ARM_R)):
+            sxp, syp = OFF_X + sh[0] * PX, TOP_PAD + sh[1] * PX
+            p = self.paws[side]
+            ang = math.atan2(p[1] - syp, p[0] - sxp)
+            d = math.hypot(p[0] - sxp, p[1] - syp)
+            bend = max(0.0, 1 - d / (9.5 * PX)) * 1.5 * PX * (1 if side == "L" else -1)
+            mx = (sxp + p[0]) / 2 - math.sin(ang) * bend
+            my = (syp + p[1]) / 2 + math.cos(ang) * bend
+            for x1, y1, x2, y2, wo, wi in ((sxp, syp, mx, my, PX * 2.2, PX * 1.55),
+                                           (mx, my, p[0], p[1], PX * 2.0, PX * 1.35)):
+                cv.create_line(x1, y1, x2, y2, width=wo, fill=pal["#"], capstyle=tk.ROUND)
+                cv.create_line(x1, y1, x2, y2, width=wi, fill=pal["B"], capstyle=tk.ROUND)
+            cv.create_rectangle(p[0] - PX * 0.9, p[1] - PX * 0.9, p[0] + PX * 0.9, p[1] + PX * 0.9,
+                                fill=pal["B"], outline=pal["#"])
 
     def _draw_fish(self, now):
         cv = self.canvas
@@ -634,7 +817,7 @@ class ByteCat:
             flip = f["dir"]
         else:
             flip = -1 if f["vx"] < 0 else 1
-            if f["spin"] % 2:                     # crude tumble: flip while tossed
+            if f["spin"] % 2:
                 flip = -flip
         p = PX
 
@@ -651,44 +834,17 @@ class ByteCat:
         rect(-1.5 * p, -0.6 * p, 0.7 * p, 0.7 * p, FISH_DARK)
         rect(-0.2 * p, -1.0 * p, 0.5 * p, 2.0 * p, FISH_DARK)
 
-    def _draw_swipe(self, now, pal, xof, yof):
-        """Three-phase paw swipe: wind up, strike fast, retract slow.
-        The leg bends at an elbow that straightens as the paw extends."""
-        st = now - self.swipe_start
-        if st < 0 or st > SWIPE_S:
-            return
-        cv = self.canvas
-        t = st / SWIPE_S
-        if t < 0.22:
-            reach = -1.1 * (t / 0.22)                              # wind up
-        elif t < 0.5:
-            k = (t - 0.22) / 0.28
-            reach = -1.1 + (7.2 + 1.1) * (1 - (1 - k) ** 2)        # strike, ease-out
-        else:
-            k = (t - 0.5) / 0.5
-            reach = 7.2 * (1 - k * k * (3 - 2 * k))                # retract, smooth
-        sxp, syp = xof(SHOULDER[0]), yof(SHOULDER[1])
-        fx, fy = OFF_X + self.fish["x"] * PX, TOP_PAD + self.fish["y"] * PX
-        ang = math.atan2(fy - syp, fx - sxp)
-        ex = sxp + math.cos(ang) * reach * PX
-        ey = syp + math.sin(ang) * reach * PX
-        # elbow bows outward when bent, straightens at full reach
-        bend = max(0.0, 1 - abs(reach) / 7.2) * 1.6 * PX
-        mx = (sxp + ex) / 2 - math.sin(ang) * bend
-        my = (syp + ey) / 2 + math.cos(ang) * bend
-        for x1, y1, x2, y2, wo, wi in ((sxp, syp, mx, my, PX * 2.2, PX * 1.6),
-                                       (mx, my, ex, ey, PX * 2.0, PX * 1.4)):
-            cv.create_line(x1, y1, x2, y2, width=wo, fill=pal["#"])
-            cv.create_line(x1, y1, x2, y2, width=wi, fill=pal["B"])
-        cv.create_rectangle(ex - PX, ey - PX, ex + PX, ey + PX,
-                            fill=pal["B"], outline=pal["#"])
-
     def _draw_particles(self):
         cv = self.canvas
         alive = []
         for p in self.particles:
-            p["y"] -= 0.9
-            p["life"] -= 0.03
+            if p["kind"] == "drop":
+                p["vy"] += 0.5
+                p["x"] += p["vx"]
+                p["life"] -= 0.09
+            else:
+                p["life"] -= 0.03
+            p["y"] += p["vy"]
             if p["life"] <= 0:
                 continue
             alive.append(p)
@@ -703,6 +859,9 @@ class ByteCat:
                 x = p["x"] + math.sin(p["life"] * 12) * 3
                 cv.create_rectangle(x, p["y"], x + PX * .9, p["y"] + PX * .9,
                                     fill="#b9b4ac", width=0)
+            elif p["kind"] == "drop":
+                cv.create_rectangle(p["x"], p["y"], p["x"] + PX * 0.6, p["y"] + PX * 0.8,
+                                    fill=DROP_BLUE, width=0)
             elif p["kind"] == "zzz":
                 cv.create_text(p["x"] + (1 - p["life"]) * 10, p["y"], text="z",
                                font=("Courier", 12, "bold"), fill="#8d8a86")
@@ -719,7 +878,7 @@ class ByteCat:
         if self.pomo:
             left = max(0, int(self.pomo["until"] - now))
             label = "FOCUS" if self.pomo["phase"] == "focus" else "BREAK"
-            color = "#e5484d" if label == "FOCUS" else "#4ac26b"
+            color = "#c8433e" if label == "FOCUS" else "#4a7c4e"
             cv.create_text(W / 2, y, text=f"{label} {left // 60:02d}:{left % 60:02d}",
                            font=("Courier", 13, "bold"), fill=color)
             y += 20

@@ -4,7 +4,9 @@
 # Builds BYTECAT.app in ~/Applications and launches it. Because the app
 # bundle is assembled locally by your own shell (not downloaded by a
 # browser), it never receives the com.apple.quarantine flag — so Gatekeeper
-# shows no security warnings. Same technique Homebrew uses.
+# shows no security warnings. The launcher is compiled with osacompile into
+# a native binary for your Mac's own architecture, so there is no Rosetta
+# prompt on Apple Silicon either.
 #
 # Usage:  curl -fsSL https://ranch6.github.io/bytecat/downloads/install.sh | sh
 # Uninstall: delete ~/Applications/BYTECAT.app (settings live in ~/.bytecat.json)
@@ -38,36 +40,32 @@ if [ -z "$PY" ]; then
 fi
 
 APP="$HOME/Applications/BYTECAT.app"
-echo "· installing to $APP (python: $PY)"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+echo "· building native launcher (python: $PY)"
+cat > "$TMP/bytecat.applescript" <<APPLESCRIPT
+on run
+	set resPath to POSIX path of (path to me) & "Contents/Resources/"
+	do shell script quoted form of "$PY" & " " & quoted form of (resPath & "bytecat.py") & " > /dev/null 2>&1 &"
+end run
+APPLESCRIPT
+
+mkdir -p "$HOME/Applications"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+osacompile -o "$APP" "$TMP/bytecat.applescript"
 
+echo "· installing to $APP"
 curl -fsSL "$BASE/bytecat.py" -o "$APP/Contents/Resources/bytecat.py"
-curl -fsSL "$BASE/bytecat.icns" -o "$APP/Contents/Resources/bytecat.icns" 2>/dev/null || true
+# our icon replaces the generic applet icon (name must stay applet.icns)
+curl -fsSL "$BASE/bytecat.icns" -o "$APP/Contents/Resources/applet.icns" 2>/dev/null || true
 
-cat > "$APP/Contents/MacOS/bytecat" <<LAUNCHER
-#!/bin/sh
-exec "$PY" "\$(cd "\$(dirname "\$0")/../Resources" && pwd)/bytecat.py"
-LAUNCHER
-chmod +x "$APP/Contents/MacOS/bytecat"
-
-cat > "$APP/Contents/Info.plist" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleName</key><string>BYTECAT</string>
-  <key>CFBundleDisplayName</key><string>BYTECAT</string>
-  <key>CFBundleIdentifier</key><string>io.github.ranch6.bytecat</string>
-  <key>CFBundleVersion</key><string>1.0</string>
-  <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleExecutable</key><string>bytecat</string>
-  <key>CFBundleIconFile</key><string>bytecat</string>
-  <key>LSUIElement</key><true/>
-</dict>
-</plist>
-PLIST
+PB=/usr/libexec/PlistBuddy
+PLIST="$APP/Contents/Info.plist"
+$PB -c 'Set :CFBundleName BYTECAT' "$PLIST" 2>/dev/null || $PB -c 'Add :CFBundleName string BYTECAT' "$PLIST"
+$PB -c 'Add :CFBundleDisplayName string BYTECAT' "$PLIST" 2>/dev/null || $PB -c 'Set :CFBundleDisplayName BYTECAT' "$PLIST"
+$PB -c 'Add :CFBundleIdentifier string io.github.ranch6.bytecat' "$PLIST" 2>/dev/null || $PB -c 'Set :CFBundleIdentifier io.github.ranch6.bytecat' "$PLIST"
+$PB -c 'Add :LSUIElement bool true' "$PLIST" 2>/dev/null || true
 
 # refresh LaunchServices/Spotlight registration
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" >/dev/null 2>&1 || true

@@ -150,6 +150,10 @@ code { font-family: var(--font-mono); }
 .swatch.active { outline: 3px solid var(--hl); }
 .swatch-ink     { background: linear-gradient(135deg, #fdfcf8 55%, #141312 55%); }
 .swatch-patch   { background: linear-gradient(135deg, #f6f1e5 55%, #8d8a86 55%); }
+.swatch-tabby   { background: repeating-linear-gradient(45deg, #f4efe2 0 4px, #a89f92 4px 7px); }
+.swatch-chonk   { background: repeating-linear-gradient(45deg, #f6e7cd 0 4px, #e0a45c 4px 8px); border-radius: 50%; }
+.swatch-cloud   { background: #fbfaf5; border-radius: 50%; }
+.swatch-munchkin{ background: repeating-linear-gradient(90deg, #f6e9d0 0 4px, #e8a95e 4px 7px); height: 16px; margin-top: 8px; }
 .swatch-orange  { background: linear-gradient(135deg, #f6ead2 45%, #e0a45c 45%); }
 .swatch-calico  { background: linear-gradient(135deg, #f7f2e8 40%, #e0a45c 40% 70%, #57504e 70%); }
 .swatch-siamese { background: linear-gradient(135deg, #efe4cd 55%, #6b5646 55%); }
