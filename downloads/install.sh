@@ -57,8 +57,10 @@ osacompile -o "$APP" "$TMP/bytecat.applescript"
 
 echo "· installing to $APP"
 curl -fsSL "$BASE/bytecat.py" -o "$APP/Contents/Resources/bytecat.py"
-# our icon replaces the generic applet icon (name must stay applet.icns)
+# our icon replaces the generic applet icon (name must stay applet.icns);
+# Assets.car and CFBundleIconName would override it on macOS 11+, so drop both
 curl -fsSL "$BASE/bytecat.icns" -o "$APP/Contents/Resources/applet.icns" 2>/dev/null || true
+rm -f "$APP/Contents/Resources/Assets.car"
 
 PB=/usr/libexec/PlistBuddy
 PLIST="$APP/Contents/Info.plist"
@@ -66,6 +68,7 @@ $PB -c 'Set :CFBundleName BYTECAT' "$PLIST" 2>/dev/null || $PB -c 'Add :CFBundle
 $PB -c 'Add :CFBundleDisplayName string BYTECAT' "$PLIST" 2>/dev/null || $PB -c 'Set :CFBundleDisplayName BYTECAT' "$PLIST"
 $PB -c 'Add :CFBundleIdentifier string io.github.ranch6.bytecat' "$PLIST" 2>/dev/null || $PB -c 'Set :CFBundleIdentifier io.github.ranch6.bytecat' "$PLIST"
 $PB -c 'Add :LSUIElement bool true' "$PLIST" 2>/dev/null || true
+$PB -c 'Delete :CFBundleIconName' "$PLIST" 2>/dev/null || true
 
 # refresh LaunchServices/Spotlight registration
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" >/dev/null 2>&1 || true

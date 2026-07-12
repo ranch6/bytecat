@@ -52,8 +52,10 @@ Otherwise: copy the zip to any computer with Python 3 + Tk and double-click
 the launcher (macOS first launch of a *downloaded* file: right-click → Open).
 Missing Tk? macOS: `brew install python-tk` · Linux: `sudo apt install python3-tk`.
 
-Features: seven coats (patch/orange/calico/siamese/void/white/**lucky cat**
-with red collar and bell), eased eye-follow anywhere on screen, cursor hunt,
+Features: twelve coats (ink/patch/tabby/orange/**chonk**/calico/siamese/
+**cloud**/void/white/**munchkin**/**lucky cat** with red collar and bell —
+chonk and munchkin have their own fat and short-legged body sprites),
+eased eye-follow anywhere on screen, cursor hunt,
 mochi drag, head pets with hearts, keyboard kneading, **overheat mode** (red +
 steam when you type in a frenzy), **fish time** (a fish appears when the cat
 is bored; the cat bats it into the air and it tumbles back down), stretch-break

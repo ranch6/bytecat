@@ -304,10 +304,11 @@ class PixelCat {
     if (!["drag", "sleep", "idle"].includes(this.state) && now > this.stateUntil) this.state = "idle";
     const idleFor = now - this.lastActive;
 
-    // bored -> long fish session; and sometimes the fish just drops by
+    // bored -> long fish session; and sometimes the fish just pops in
+    // right next to the cat, unannounced
     if (!this.fish && this.state === "idle" && now > this.fishCooldownUntil) {
       if (idleFor > 15000 && idleFor < 70000) this._spawnFish(now, 18000);
-      else if (idleFor > 4000 && Math.random() < 0.0002) this._spawnFish(now, 9000);
+      else if (idleFor > 4000 && Math.random() < 0.0002) this._spawnFish(now, 9000, true);
     }
     if (this.fish && now - this.fish.born > this.fish.visitMs && this.fish.phase === "swim") {
       this.fish = null;
@@ -330,8 +331,12 @@ class PixelCat {
   }
 
   // ------------------------------------------------------------- fish -----
-  _spawnFish(now, visitMs) {
-    this.fish = { x: -3, y: FISH_PLAY_ROW, vx: 0, vy: 0, dir: 1,
+  _spawnFish(now, visitMs, beside) {
+    // beside: materialize right next to the cat instead of swimming in
+    const x = beside
+      ? (Math.random() < 0.5 ? 5 + Math.random() * 3 : 26 + Math.random() * 3)
+      : -3;
+    this.fish = { x, y: FISH_PLAY_ROW, vx: 0, vy: 0, dir: x > 17 ? -1 : 1,
                   phase: "swim", spin: 0, born: now, visitMs: visitMs || 18000 };
     // paws start at the shoulders
     this.paws.L = { x: ARM_L[0] * this.px, y: (ARM_L[1] + PAD) * this.px };
@@ -539,7 +544,7 @@ class PixelCat {
     if (pal.stripes) {
       cx.fillStyle = pal.stripes;
       for (const c of [15, 17, 19])
-        for (const r of [3, 4])
+        for (const r of [4, 5])
           if ("BG".includes(grid[r][c])) cx.fillRect(xof(c), yof(r), px, ph);
       for (const r of [21, 23, 25]) {
         if (r >= rows) continue;

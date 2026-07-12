@@ -478,7 +478,7 @@ class ByteCat:
         if new_keys:
             self.key_times += [now] * min(new_keys, 6)
             self.key_times = [t for t in self.key_times if now - t < 2.0]
-            self.last_pointer_move = now
+            self._wake(now)          # typing counts as activity (dismisses fish too)
             if len(self.key_times) > 14:
                 if self.state != "overheat":
                     self._say("too fast!!", 2)
@@ -493,8 +493,8 @@ class ByteCat:
         if self.fish is None and self.state == "idle" and now > self.fish_cooldown_until:
             if 25 < idle_for < 150:
                 self._spawn_fish(now, 18)
-            elif idle_for > 6 and random.random() < 0.0011:   # ~ every few minutes
-                self._spawn_fish(now, 9)
+            elif idle_for > 6 and random.random() < 0.0011:   # ~ every few minutes,
+                self._spawn_fish(now, 9, beside=True)         # right next to the cat
         if (self.fish is not None and now - self.fish["born"] > self.fish["visit_s"] and
                 self.fish["phase"] == "swim"):
             self.fish = None
@@ -558,10 +558,15 @@ class ByteCat:
                             max(-0.8, min(1.0, (y - cy) / 95))]
 
     # ------------------------------------------------------------- fish ----
-    def _spawn_fish(self, now, visit_s):
-        self.fish = {"x": -3.0, "y": FISH_PLAY_ROW, "vx": 0.0, "vy": 0.0,
-                     "dir": 1, "phase": "swim", "spin": 0, "born": now,
-                     "visit_s": visit_s}
+    def _spawn_fish(self, now, visit_s, beside=False):
+        # beside: materialize right next to the cat instead of swimming in
+        if beside:
+            x = 5 + random.random() * 3 if random.random() < 0.5 else 26 + random.random() * 3
+        else:
+            x = -3.0
+        self.fish = {"x": x, "y": FISH_PLAY_ROW, "vx": 0.0, "vy": 0.0,
+                     "dir": -1 if x > 17 else 1, "phase": "swim", "spin": 0,
+                     "born": now, "visit_s": visit_s}
         self.paws["L"] = [OFF_X + ARM_L[0] * PX, TOP_PAD + ARM_L[1] * PX]
         self.paws["R"] = [OFF_X + ARM_R[0] * PX, TOP_PAD + ARM_R[1] * PX]
 
@@ -695,7 +700,7 @@ class ByteCat:
         if pal.get("stripes"):
             st = pal["stripes"]
             for c in (15, 17, 19):
-                for r in (3, 4):
+                for r in (4, 5):
                     if grid[r][c] in "BG":
                         cv.create_rectangle(xof(c), yof(r), xof(c) + PX, yof(r) + ph,
                                             fill=st, width=0)
